@@ -1,0 +1,43 @@
+import axios from "axios";
+import { AUTH_USER, AUTH_ERROR } from "./types";
+
+export const registerUser = (userData, history) => dispatch => {
+  axios
+    .post("/api/users/signup", userData)
+    .then(res => {
+      dispatch({ type: AUTH_USER, payload: res.data.token });
+      localStorage.setItem("token", res.data.token);
+      history.push("/");
+    })
+    .catch(err =>
+      dispatch({
+        type: AUTH_ERROR,
+        payload: err.response.data
+      })
+    );
+};
+
+export const signinUser = (userData, history) => dispatch => {
+  axios
+    .post("/api/users/signin", userData)
+    .then(res => {
+      dispatch({ type: AUTH_USER, payload: res.data.token });
+      localStorage.setItem("token", res.data.token);
+      history.push("/");
+    })
+    .catch(err =>
+      dispatch({
+        type: AUTH_ERROR,
+        payload: err.response.data
+      })
+    );
+};
+
+export const signout = () => {
+  localStorage.removeItem("token");
+
+  return {
+    type: AUTH_USER,
+    payload: ""
+  };
+};
