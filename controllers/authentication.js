@@ -4,9 +4,13 @@ const config = require("../config");
 
 exports.signup = function(req, res, next) {
   console.log(req.body);
-
+  let isAdmin = false;
   const email = req.body.email;
   const password = req.body.password;
+  const emailDomain = req.body.email.split("@")[1].split(".")[0];
+  if (emailDomain === "admin") {
+    isAdmin = true;
+  }
 
   console.log(`email: ${email}, password: ${password}`);
 
@@ -32,7 +36,12 @@ exports.signup = function(req, res, next) {
                 return res.status(422).send({
                   error: "Something went wrong while creating token!"
                 });
-              res.json({ success: true, token: token });
+              res.json({
+                success: true,
+                token: token,
+                isAdmin: isAdmin,
+                id: newUser.id
+              });
             }
           );
         })
@@ -42,12 +51,22 @@ exports.signup = function(req, res, next) {
 };
 
 exports.signin = function(req, res, next) {
+  let isAdmin = false;
+  const emailDomain = req.body.email.split("@")[1].split(".")[0];
+  if (emailDomain === "admin") {
+    isAdmin = true;
+  }
   const payload = { sub: req.user.id, iat: new Date().getTime() };
   jwt.sign(payload, config.secret, { expiresIn: 7200 }, (err, token) => {
     if (err)
       return res
         .status(422)
         .send({ error: "Something went wrong while creating token!" });
-    res.json({ success: "successfully signed in", token: token });
+    res.json({
+      success: "successfully signed in",
+      token: token,
+      id: req.user.id,
+      isAdmin: isAdmin
+    });
   });
 };

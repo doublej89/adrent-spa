@@ -1,0 +1,68 @@
+.messages {
+  background: white;
+  height: 250px;
+  font-size: 12px;
+  padding: 15px;
+  overflow: auto;
+  overflow-x: hidden;
+}
+
+.inputMessage {
+  position: relative;
+  width: 290px;
+  height: 34px;
+  border-right: 0;
+  border-left: 0;
+  padding-left: 10px;
+  padding-bottom: 5px;
+}
+
+.msg_a {
+  position: relative;
+  background: #abb3e8;
+  padding: 10px 15px;
+  min-height: 10px;
+  margin-bottom: 5px;
+  margin-right: 50px;
+  border-radius: 5px;
+  word-wrap: break-word;
+}
+
+.msg_a:before {
+  content: "";
+  position: absolute;
+  width: 0px;
+  height: 0px;
+  border: 10px solid;
+  border-color: transparent #abb3e8 transparent transparent;
+  left: -20px;
+  top: 7px;
+}
+
+.msg_b {
+  background: #9cde97;
+  padding: 10px 15px;
+  min-height: 15px;
+  margin-bottom: 5px;
+  position: relative;
+  margin-left: 50px;
+  border-radius: 5px;
+  word-wrap: break-word;
+}
+
+.msg_b:after {
+  content: "";
+  position: absolute;
+  width: 0px;
+  height: 0px;
+  border: 10px solid;
+  border-color: transparent transparent transparent #9cde97;
+  right: -20px;
+  top: 7px;
+}
+
+.timestamp {
+  text-align: right;
+  display: block;
+  font-size: 10px;
+}

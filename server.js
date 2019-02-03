@@ -7,7 +7,7 @@ const productRoute = require("./routes/product");
 const cors = require("cors");
 const SocketManager = require("./SocketManager");
 const User = require("./models/User");
-const Message = require("./models/Message");
+const Room = require("./models/Room");
 
 const app = express();
 const http = require("http").Server(app);
@@ -28,6 +28,7 @@ const admins = {};
 
 io.on("connection", function(socket) {
   socket.on("add user", function(roomId) {
+    socket.isAdmin = false;
     socket.roomId = roomId;
     User.findById(roomId)
       .then(user => {
@@ -40,11 +41,11 @@ io.on("connection", function(socket) {
       users[socket.roomId] = socket;
       newUser = true;
     }
-    Message.find({ roomId: socket.roomId })
-      .then(messages => {
-        messages.slice(-1, 1);
+    Room.find({ roomId: socket.roomId })
+      .then(room => {
+        room.messages.slice(-1, 1);
         socket.emit("chat history", {
-          history: messages,
+          history: room.messages,
           getMore: false
         });
         if (Object.keys(admins).length === 0) {
@@ -62,7 +63,7 @@ io.on("connection", function(socket) {
               adminSocket.join(socket.roomId);
               adminSocket.emit("New Client", {
                 roomId: socket.roomId,
-                history: messages,
+                history: room.messages,
                 details: socket.userDetails,
                 justJoined: false
               });
@@ -71,33 +72,122 @@ io.on("connection", function(socket) {
         }
       })
       .catch(err => console.log(err));
-    Message.count({ roomId: socket.roomId })
-      .then(len => {
+    Room.find({ roomId: socket.roomId })
+      .then(room => {
+        let len = room.messages.length;
         socket.MsgHistoryLen = len - 10;
         socket.TotalMsgLen = len;
       })
       .catch(err => console.log("Forgot to count!"));
   });
 
+  socket.on("add admin", function(data) {
+    this.isAdmin = data.isAdmin;
+    socket.username = data.admin;
+
+    Object.values(admins).forEach(adminSocket => {
+      adminSocket.emit("admin added", socket.username);
+      socket.emit("admin added", adminSocket.username);
+    });
+
+    admins[socket.username] = socket;
+
+    //If some user is already online on chat
+    if (Object.keys(users).length > 0) {
+      Object.values(users).forEach(function(userSocket) {
+        Room.find({ roomId: userSocket.roomId }).then(room => {
+          let userSocket = users[room.roomId];
+          let history = room.messages;
+          history.splice(-1, 1);
+          socket.join(userSocket.roomId);
+          socket.emit("New Client", {
+            roomId: userSocket.roomId,
+            history: history,
+            details: userSocket.userDetails,
+            justJoined: true
+          });
+        });
+      });
+    }
+  });
+
   socket.on("chat message", function(data) {
     if (data.roomId === "null") data.roomId = socket.roomId;
     data.isAdmin = socket.isAdmin;
-    Message.create(data)
-      .then(msg => console.log("Message: " + msg.msg + " saved"))
-      .catch(err => console.log("Message: " + data.roomId + " didn't save!"));
+    const message = {
+      isAdmin: data.isAdmin,
+      msg: data.msg,
+      userName: data.userName ? data.userName : null
+    };
+    Room.find({ roomId: data.roomId }).then(room => {
+      if (!room) {
+        Room.create({ roomId: data.roomId })
+          .then(r => {
+            r.messages.push(message);
+            r.save().then(() => console.log("Room: " + r.roomId + " saved"));
+          })
+          .catch(err => console.log("Room: " + data.roomId + " didn't save!"));
+      } else {
+        room.messages.push(message);
+        room.save().then(() => console.log("Room: " + room.roomId + " saved"));
+      }
+    });
     socket.broadcast.to(data.roomId).emit("chat message", data);
   });
 
   socket.on("more messages", function() {
     if (socket.MsgHistoryLen > 0) {
-      Message.find({ roomId: socket.roomId })
-        .skip(socket.MsgHistoryLen)
-        .then(messages => {
-          socket.emit("more chat history", {
-            history: messages
-          });
+      Room.find({ roomId: socket.roomId }).then(room => {
+        socket.emit("more chat history", {
+          history: room.messages.slice(socket.MsgHistoryLen)
         });
+      });
       socket.MsgHistoryLen -= 10;
+    }
+  });
+
+  socket.on("disconnect", function() {
+    if (socket.isAdmin) {
+      delete admins[socket.username];
+      Object.values(admins).forEach(function(adminSocket) {
+        adminSocket.emit("admin removed", socket.username);
+      });
+    } else {
+      if (io.sockets.adapter.rooms[socket.roomId]) {
+        var total = io.sockets.adapter.rooms[socket.roomId]["length"];
+        var totAdmins = Object.keys(admins).length;
+        var clients = total - totAdmins;
+        if (clients == 0) {
+          //check if user reconnects in 4 seconds
+          setTimeout(function() {
+            if (io.sockets.adapter.rooms[socket.roomId])
+              total = io.sockets.adapter.rooms[socket.roomId]["length"];
+            totAdmins = Object.keys(admins).length;
+            if (total <= totAdmins) {
+              /*mail.sendMail({
+								roomID: socket.roomID,
+								MsgLen: socket.TotalMsgLen,
+								email: socket.userDetails
+							});*/
+              delete users[socket.roomId];
+              socket.broadcast
+                .to(socket.roomId)
+                .emit("User Disconnected", socket.roomId);
+              Object.values(admins).forEach(function(adminSocket) {
+                adminSocket.leave(socket.roomId);
+              });
+            }
+          }, 4000);
+        }
+      } else {
+        if (socket.userDetails)
+          /*mail.sendMail({
+						roomID: socket.roomID,
+						MsgLen: socket.TotalMsgLen,
+						email: socket.userDetails
+					});*/
+          delete users[socket.roomId];
+      }
     }
   });
 });
