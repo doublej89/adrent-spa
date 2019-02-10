@@ -10,12 +10,14 @@ export const registerUser = (userData, history) => dispatch => {
       localStorage.setItem("roomId", res.data.id);
       history.push("/");
     })
-    .catch(err =>
+    .catch(err => {
+      console.log(err.response.data);
+
       dispatch({
         type: AUTH_ERROR,
         payload: err.response.data
-      })
-    );
+      });
+    });
 };
 
 export const signinUser = (userData, history) => dispatch => {
@@ -27,12 +29,13 @@ export const signinUser = (userData, history) => dispatch => {
       localStorage.setItem("roomId", res.data.id);
       history.push("/");
     })
-    .catch(err =>
+    .catch(err => {
+      console.log(err.response.data);
       dispatch({
         type: AUTH_ERROR,
         payload: err.response.data
-      })
-    );
+      });
+    });
 };
 
 export const signout = () => {

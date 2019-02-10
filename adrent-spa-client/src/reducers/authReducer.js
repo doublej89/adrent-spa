@@ -2,9 +2,10 @@ import { AUTH_USER, AUTH_ERROR } from "../actions/types";
 
 const INITIAL_STATE = {
   authenticated: "",
-  errorMessage: "",
+  errorMessage: {},
   isAdmin: false,
-  id: ""
+  id: "",
+  username: ""
 };
 
 export default function(state = INITIAL_STATE, action) {
@@ -13,8 +14,9 @@ export default function(state = INITIAL_STATE, action) {
       return {
         ...state,
         authenticated: action.payload.token,
-        isAdmin: payload.isAdmin,
-        id: payload.id
+        isAdmin: action.payload.isAdmin,
+        id: action.payload.id,
+        username: action.payload.username
       };
     case AUTH_ERROR:
       return { ...state, errorMessage: action.payload };

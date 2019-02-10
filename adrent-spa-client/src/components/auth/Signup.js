@@ -1,13 +1,57 @@
 import React, { Component } from "react";
-import { reduxForm, Field, FieldArray } from "redux-form";
+import { reduxForm, Field } from "redux-form";
 import { compose } from "redux";
 import { connect } from "react-redux";
-import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
+import Paper from "@material-ui/core/Paper";
 import { registerUser } from "../../actions/authActions";
-import Validator from "validator";
+import FormControl from "@material-ui/core/FormControl";
+import Input from "@material-ui/core/Input";
+import InputLabel from "@material-ui/core/InputLabel";
+import Button from "@material-ui/core/Button";
+import CssBaseline from "@material-ui/core/CssBaseline";
+import { withStyles } from "@material-ui/core/styles";
+
+const styles = theme => ({
+  main: {
+    width: "auto",
+    display: "block", // Fix IE 11 issue.
+    marginLeft: theme.spacing.unit * 3,
+    marginRight: theme.spacing.unit * 3,
+    [theme.breakpoints.up(400 + theme.spacing.unit * 3 * 2)]: {
+      width: 400,
+      marginLeft: "auto",
+      marginRight: "auto"
+    }
+  },
+  paper: {
+    marginTop: theme.spacing.unit * 8,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    padding: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 3}px ${theme
+      .spacing.unit * 3}px`
+  },
+  avatar: {
+    margin: theme.spacing.unit,
+    backgroundColor: theme.palette.secondary.main
+  },
+  form: {
+    width: "100%", // Fix IE 11 issue.
+    marginTop: theme.spacing.unit
+  },
+  submit: {
+    marginTop: theme.spacing.unit * 3
+  }
+});
 
 class Signup extends Component {
+  constructor(props) {
+    super(props);
+    this.renderError = this.renderError.bind(this);
+    this.renderInput = this.renderInput.bind(this);
+  }
+
   componentDidMount() {
     if (this.props.authenticated) {
       this.props.history.push("/");
@@ -31,75 +75,102 @@ class Signup extends Component {
 
   renderInput = ({ input, label, meta, type }) => {
     //const className = `field ${meta.error && meta.touched ? "error" : ""}`;
-
     return (
-      <div>
-        <TextField label={label} type={type} {...input} variant="outlined" />
-        {/* {this.renderError(meta)} */}
+      <div style={{ marginTop: 16 }}>
+        <Input {...input} type={type} />
+        {this.renderError(meta)}
       </div>
     );
   };
 
   render() {
-    const { handleSubmit } = this.props;
+    const { handleSubmit, classes } = this.props;
 
     return (
-      <form onSubmit={handleSubmit(this.onSubmit)}>
-        <Field
-          name="email"
-          component={this.renderInput}
-          autoComplete="none"
-          label="Email"
-        />
-        <Field
-          name="password"
-          type="password"
-          component={this.renderInput}
-          autoComplete="none"
-        />
-        <Field
-          name="password2"
-          type="password"
-          component={this.renderInput}
-          autoComplete="none"
-        />
-
-        {/* <div>{this.props.errorMessage}</div> */}
-        <button type="submit">Submit</button>
-      </form>
+      <main className={classes.main}>
+        <CssBaseline />
+        <Paper className={classes.paper}>
+          <Typography component="h1" variant="h5">
+            Sign up
+          </Typography>
+          <form className={classes.form} onSubmit={handleSubmit(this.onSubmit)}>
+            <FormControl margin="normal" required fullWidth>
+              <InputLabel htmlFor="password">Username</InputLabel>
+              <Field
+                name="username"
+                type="text"
+                id="username"
+                autoComplete="none"
+                component={this.renderInput}
+              />
+            </FormControl>
+            <FormControl margin="normal" required fullWidth>
+              <InputLabel htmlFor="email">Email Address</InputLabel>
+              <Field
+                id="email"
+                name="email"
+                autoComplete="email"
+                autoFocus
+                component={this.renderInput}
+              />
+            </FormControl>
+            <FormControl margin="normal" required fullWidth>
+              <InputLabel htmlFor="password">Password</InputLabel>
+              <Field
+                name="password"
+                type="password"
+                id="password"
+                autoComplete="current-password"
+                component={this.renderInput}
+              />
+            </FormControl>
+            <FormControl margin="normal" required fullWidth>
+              <InputLabel htmlFor="password">Confirm Password</InputLabel>
+              <Field
+                name="password2"
+                type="password"
+                id="password2"
+                autoComplete="current-password"
+                component={this.renderInput}
+              />
+            </FormControl>
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              color="primary"
+              className={classes.submit}
+            >
+              Sign up
+            </Button>
+          </form>
+        </Paper>
+      </main>
     );
   }
 }
 
-const validate = formValues => {
-  let errors = {};
-
-  if (formValues.email && Validator.isEmpty(formValues.email)) {
-    errors.email = "Email field must not be empty";
+const validate = values => {
+  const errors = {};
+  if (!values.username) {
+    errors.username = "Required";
+  } else if (values.username.length > 15) {
+    errors.username = "Must be 15 characters or less";
   }
-
-  if (formValues.email && !Validator.isEmail(formValues.email)) {
-    errors.email = "Email is invalid!";
+  if (!values.email) {
+    errors.email = "Required";
+  } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(values.email)) {
+    errors.email = "Invalid email address";
   }
-
-  if (
-    formValues.password &&
-    !Validator.isLength(formValues.password, { min: 6, max: 30 })
-  ) {
-    errors.password = "Password must be at least 6 characters long";
+  if (!values.password) {
+    errors.password = "Required";
+  } else if (Number(values.password) < 6) {
+    errors.password = "Password must be atleast 6 characters long";
   }
-  if (formValues.password && Validator.isEmpty(formValues.password)) {
-    errors.password = "Password field must not be empty";
-  }
-  if (formValues.password2 && Validator.isEmpty(formValues.password2)) {
-    errors.password2 = "Confirm password field must not be empty";
-  }
-  if (
-    formValues.password &&
-    formValues.password2 &&
-    !Validator.equals(formValues.password, formValues.password2)
-  ) {
-    errors.password2 = "Confirm password did not match password";
+  if (!values.password2) {
+    errors.password2 = "Please re-enter your password";
+  } else if (values.password2 && values.password2 !== values.password) {
+    errors.password2 = "Your passwords don't match!";
   }
   return errors;
 };
@@ -116,5 +187,6 @@ export default compose(
     mapStateToProps,
     { registerUser }
   ),
-  reduxForm({ form: "signup" })
+  reduxForm({ form: "signup", validate }),
+  withStyles(styles)
 )(Signup);

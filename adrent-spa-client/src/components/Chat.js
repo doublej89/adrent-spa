@@ -3,6 +3,10 @@ import { connect } from "react-redux";
 
 import { SlideToggle } from "react-slide-toggle";
 import * as ReactDOM from "react-dom";
+import "./Chat.css";
+import io from "socket.io-client";
+const socketUrl = "http://localhost:5000";
+const socket = io(socketUrl);
 
 let active = sessionStorage.getItem("active");
 
@@ -33,43 +37,45 @@ class Chat extends Component {
       });
     });
 
-    // this.setState({ socket });
-
     if (this.props.authenticated && this.props.roomId) {
       socket.emit("add user", {
         roomId: this.props.roomId
       });
     }
 
-    socket.on("more chat history", function(data) {
+    socket.on("more chat history", data => {
       this.setState({
-        messages: [...this.state.messages, ...data.history]
+        messages: [...data.history]
       });
     });
 
-    socket.on("chat history", function(data) {
-      this.setState({
-        messages: [...this.state.messages, ...data.history]
-      });
+    socket.on("chat history", data => {
+      console.log(data);
+      if (data && data.history) {
+        this.setState({
+          messages: [...data.history, ...this.state.messages]
+        });
+      }
     });
 
-    socket.on("log message", function(text) {
+    socket.on("log message", text => {
       this.setState({ logMessage: text });
     });
 
-    socket.on("chat message", function(data) {
-      this.setState({ nextMessage: { ...data } });
+    socket.on("chat message", data => {
+      //this.setState({ nextMessage: { ...data } });
+      this.setState({ messages: [...this.state.messages, data] });
     });
 
-    socket.on("disconnect", function() {
+    socket.on("disconnect", () => {
       this.setState({
         disabled: !this.state.disabled ? true : this.state.disabled,
         reconnectFailed: false
       });
     });
 
-    socket.on("reconnect", function() {
-      setTimeout(function() {
+    socket.on("reconnect", () => {
+      setTimeout(() => {
         console.log("Reconnected!");
         this.setState({
           disabled: this.state.disabled ? false : this.state.disabled,
@@ -82,7 +88,7 @@ class Chat extends Component {
       }, 4000);
     });
 
-    socket.on("reconnect_failed", function() {
+    socket.on("reconnect_failed", () => {
       this.setState({ reconnectFailed: true });
     });
   }
@@ -126,7 +132,8 @@ class Chat extends Component {
       if (cleanedMessage) {
         this.setState({ messageText: "" });
         let time = "" + new Date();
-        this.setState({ newMessage: { msg: cleanedMessage, timestamp: time } });
+        //this.setState({ newMessage: { msg: cleanedMessage, timestamp: time } });
+        //this.setState({ messages });
         socket.emit("chat message", {
           roomId: "null",
           msg: cleanedMessage,
@@ -137,7 +144,7 @@ class Chat extends Component {
   }
 
   handleChange(e) {
-    this.setState({ newMessage: e.target.value });
+    this.setState({ messageText: e.target.value });
   }
 
   render() {
@@ -165,7 +172,7 @@ class Chat extends Component {
         duration={500}
         collapsed
         render={({ onToggle, setCollapsibleElement }) => (
-          <div className="msg_box" style={{ left: 0 }}>
+          <div className="msg_box">
             <div
               onClick={() => {
                 onToggle();
@@ -210,14 +217,14 @@ class Chat extends Component {
                       </span>
                     </div>
                   ) : null}
-                  {Object.keys(nextMessage).length > 0 ? (
+                  {/* {Object.keys(nextMessage).length > 0 ? (
                     <div className={nextMessage.isAdmin ? "msg_a" : "msg_b"}>
                       {nextMessage.msg}
                       <span className="timestamp">
                         {nextMessage.timestamp.toLocaleString().substr(15, 6)}
                       </span>
                     </div>
-                  ) : null}
+                  ) : null} */}
                   {/* {Object.keys(newMessage).length > 0 ? (
                     <div className="msg_b">
                       {newMessage.msg}

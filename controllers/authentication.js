@@ -20,6 +20,7 @@ exports.signup = function(req, res, next) {
         return res.status(422).send({ error: "Email is in use!" });
       }
       const user = new User({
+        username: req.body.username,
         email: email,
         password: password
       });
@@ -40,7 +41,8 @@ exports.signup = function(req, res, next) {
                 success: true,
                 token: token,
                 isAdmin: isAdmin,
-                id: newUser.id
+                id: newUser.id,
+                username: isAdmin ? newUser.username : null
               });
             }
           );
@@ -66,7 +68,8 @@ exports.signin = function(req, res, next) {
       success: "successfully signed in",
       token: token,
       id: req.user.id,
-      isAdmin: isAdmin
+      isAdmin: isAdmin,
+      username: isAdmin ? req.user.username : null
     });
   });
 };

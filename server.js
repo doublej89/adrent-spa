@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 const authRoute = require("./routes/auth");
 const productRoute = require("./routes/product");
 const cors = require("cors");
-const SocketManager = require("./SocketManager");
+//const SocketManager = require("./SocketManager");
 const User = require("./models/User");
 const Room = require("./models/Room");
 
@@ -27,10 +27,10 @@ const users = {};
 const admins = {};
 
 io.on("connection", function(socket) {
-  socket.on("add user", function(roomId) {
+  socket.on("add user", function(data) {
     socket.isAdmin = false;
-    socket.roomId = roomId;
-    User.findById(roomId)
+    socket.roomId = data.roomId;
+    User.findById(data.roomId)
       .then(user => {
         socket.userDetails = user;
       })
@@ -41,13 +41,29 @@ io.on("connection", function(socket) {
       users[socket.roomId] = socket;
       newUser = true;
     }
-    Room.find({ roomId: socket.roomId })
+    Room.findOne({ roomId: socket.roomId })
       .then(room => {
-        room.messages.slice(-1, 1);
-        socket.emit("chat history", {
-          history: room.messages,
-          getMore: false
-        });
+        console.log(room);
+        if (!room) {
+          console.log("Socket id: " + socket.roomId);
+          Room.create({ roomId: socket.roomId })
+            .then(r => {
+              socket.emit("chat history", {
+                history: [],
+                getMore: false
+              });
+            })
+            .catch(err => {
+              console.log("Room not created!");
+              console.log(err);
+            });
+        } else {
+          //room.messages.slice(-1, 1);
+          socket.emit("chat history", {
+            history: room.messages,
+            getMore: false
+          });
+        }
         if (Object.keys(admins).length === 0) {
           socket.emit(
             "log message",
@@ -57,28 +73,24 @@ io.on("connection", function(socket) {
           if (newUser) {
             socket.emit(
               "log message",
-              "Hello " + socket.userDetails.name + ", How can I help you?"
+              "Hello " + socket.userDetails.username + ", How can I help you?"
             );
             Object.values(admins).forEach(adminSocket => {
               adminSocket.join(socket.roomId);
               adminSocket.emit("New Client", {
                 roomId: socket.roomId,
-                history: room.messages,
+                history: room && room.messages ? room.messages : [],
                 details: socket.userDetails,
                 justJoined: false
               });
             });
           }
         }
-      })
-      .catch(err => console.log(err));
-    Room.find({ roomId: socket.roomId })
-      .then(room => {
-        let len = room.messages.length;
+        let len = room && room.messages ? room.messages.length : 0;
         socket.MsgHistoryLen = len - 10;
         socket.TotalMsgLen = len;
       })
-      .catch(err => console.log("Forgot to count!"));
+      .catch(err => console.log(err));
   });
 
   socket.on("add admin", function(data) {
@@ -95,18 +107,22 @@ io.on("connection", function(socket) {
     //If some user is already online on chat
     if (Object.keys(users).length > 0) {
       Object.values(users).forEach(function(userSocket) {
-        Room.find({ roomId: userSocket.roomId }).then(room => {
-          let userSocket = users[room.roomId];
-          let history = room.messages;
-          history.splice(-1, 1);
-          socket.join(userSocket.roomId);
-          socket.emit("New Client", {
-            roomId: userSocket.roomId,
-            history: history,
-            details: userSocket.userDetails,
-            justJoined: true
-          });
-        });
+        Room.findOne({ roomId: userSocket.roomId })
+          .then(room => {
+            console.log(room);
+
+            let userSocket = users[room.roomId];
+            let history = room.messages;
+            //history.splice(-1, 1);
+            socket.join(userSocket.roomId);
+            socket.emit("New Client", {
+              roomId: userSocket.roomId,
+              history: history,
+              details: userSocket.userDetails,
+              justJoined: true
+            });
+          })
+          .catch(err => console.log(err));
       });
     }
   });
@@ -119,7 +135,7 @@ io.on("connection", function(socket) {
       msg: data.msg,
       userName: data.userName ? data.userName : null
     };
-    Room.find({ roomId: data.roomId }).then(room => {
+    Room.findOne({ roomId: data.roomId }).then(room => {
       if (!room) {
         Room.create({ roomId: data.roomId })
           .then(r => {
@@ -136,11 +152,17 @@ io.on("connection", function(socket) {
   });
 
   socket.on("more messages", function() {
-    if (socket.MsgHistoryLen > 0) {
-      Room.find({ roomId: socket.roomId }).then(room => {
-        socket.emit("more chat history", {
-          history: room.messages.slice(socket.MsgHistoryLen)
-        });
+    if (socket.MsgHistoryLen >= 0) {
+      Room.findOne({ roomId: socket.roomId }).then(room => {
+        if (socket.MsgHistoryLen < 10) {
+          socket.emit("more chat history", {
+            history: [...room.messages]
+          });
+        } else {
+          socket.emit("more chat history", {
+            history: room.messages.slice(socket.MsgHistoryLen)
+          });
+        }
       });
       socket.MsgHistoryLen -= 10;
     }
@@ -164,11 +186,6 @@ io.on("connection", function(socket) {
               total = io.sockets.adapter.rooms[socket.roomId]["length"];
             totAdmins = Object.keys(admins).length;
             if (total <= totAdmins) {
-              /*mail.sendMail({
-								roomID: socket.roomID,
-								MsgLen: socket.TotalMsgLen,
-								email: socket.userDetails
-							});*/
               delete users[socket.roomId];
               socket.broadcast
                 .to(socket.roomId)
@@ -180,13 +197,7 @@ io.on("connection", function(socket) {
           }, 4000);
         }
       } else {
-        if (socket.userDetails)
-          /*mail.sendMail({
-						roomID: socket.roomID,
-						MsgLen: socket.TotalMsgLen,
-						email: socket.userDetails
-					});*/
-          delete users[socket.roomId];
+        if (socket.userDetails) delete users[socket.roomId];
       }
     }
   });

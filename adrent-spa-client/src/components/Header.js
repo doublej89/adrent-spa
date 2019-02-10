@@ -22,7 +22,7 @@ const styles = {
 
 class Header extends Component {
   render() {
-    const { classes, auth, signout } = this.props;
+    const { classes, auth, signout, isAdmin, username } = this.props;
 
     return (
       <div className={classes.root}>
@@ -38,6 +38,16 @@ class Header extends Component {
                 Adrent
               </Link>
             </Typography>
+            {auth && isAdmin && username ? (
+              <Button
+                component={Link}
+                to="/adminchat"
+                color="inherit"
+                className={classes.loginButton}
+              >
+                Messages
+              </Button>
+            ) : null}
             {auth ? (
               <Button
                 onClick={() => signout()}
@@ -70,7 +80,9 @@ class Header extends Component {
 
 const mapStateToProps = state => {
   return {
-    auth: state.auth.authenticated
+    auth: state.auth.authenticated,
+    isAdmin: state.auth.isAdmin,
+    username: state.auth.username
   };
 };
 
