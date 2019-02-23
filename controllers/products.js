@@ -119,3 +119,12 @@ exports.getAllByCategory = function(req, res, next) {
       return res.json(results);
     });
 };
+
+exports.getProductByLocation = function(req, res, next) {
+  const [lat, lng] = req.params.coords.split(",");
+  console.log("lat: " + lat + ", " + "lng: " + lng);
+
+  Product.findOne({ "location.lat": lat, "location.lng": lng })
+    .populate("categories")
+    .then(product => res.json(product));
+};

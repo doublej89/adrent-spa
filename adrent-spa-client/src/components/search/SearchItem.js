@@ -24,8 +24,13 @@ const styles = {
 
 class SearchItem extends Component {
   render() {
-    const { classes } = this.props;
-    const { product } = this.props;
+    const {
+      classes,
+      product,
+      handleCategorySearch,
+      handleLocationSearch
+    } = this.props;
+    const coords = `${product.location.lat},${product.location.lng}`;
 
     return (
       <Card style={{ border: "1px solid #e8e8e8", marginBottom: 10 }}>
@@ -43,13 +48,18 @@ class SearchItem extends Component {
                 color="primary"
                 className={classes.category}
                 key={indx}
-                onClick={() => this.props.handleClick(cat._id)}
+                onClick={() => handleCategorySearch(cat._id)}
               >
                 {cat.name}
               </Typography>
             ))}
           </section>
-          <Typography variant="caption" gutterBottom>
+          <Typography
+            style={{ cursor: "pointer" }}
+            onClick={() => handleLocationSearch(coords)}
+            variant="caption"
+            gutterBottom
+          >
             <Icon className={classes.placeIcon}>place</Icon>
             {product.location.locationName}
           </Typography>

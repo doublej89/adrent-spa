@@ -9,17 +9,20 @@ const socket = io(socketUrl);
 class AdminChat extends Component {
   constructor(props) {
     super(props);
-    //this.messagesRef = React.createRef();
     this.state = {
-      clients: [],
+      clients: {},
       messageTexts: {},
       connected: false,
       disconnectedUser: "",
-      reconnectFailed: false
+      reconnectFailed: false,
+      clientFocusState: {},
+      clientTyping: {}
     };
     this.handleChange = this.handleChange.bind(this);
     this.isTyping = this.isTyping.bind(this);
     this.notifyAdmin = this.notifyAdmin.bind(this);
+    this.typing = false;
+    this.timeout = undefined;
   }
 
   componentDidMount() {
@@ -44,24 +47,22 @@ class AdminChat extends Component {
 
     socket.on("New Client", data => {
       console.log(data);
-
-      const clientAdded = this.state.clients.some(
-        client => client.roomId == data.roomId
-      );
-      const idAdded = Object.keys(this.state.messageTexts).includes(
-        data.roomId
-      );
-
-      if (!clientAdded) {
+      if (!this.state.clients[data.roomId]) {
         this.setState({
-          clients: [...this.state.clients, data],
+          clients: { ...this.state.clients, [data.roomId]: data },
+          messageTexts: { ...this.state.messageTexts, [data.roomId]: "" },
           disconnectedUser:
             data.roomId == this.state.disconnectedUser
               ? ""
               : this.state.disconnectedUser,
-          messageTexts: !idAdded
-            ? { ...this.state.messageTexts, [data.roomId]: "" }
-            : this.state.messageTexts
+          clientFocusState: {
+            ...this.state.clientFocusState,
+            [data.roomId]: { focused: false }
+          },
+          clientTyping: {
+            ...this.state.clientTyping,
+            [data.roomId]: { isTyping: false, person: "" }
+          }
         });
       }
 
@@ -75,14 +76,16 @@ class AdminChat extends Component {
 
     socket.on("reconnect", () => {
       console.log("Reconnected!");
-      //$userList.empty();
       this.setState({
-        clients: [],
-        disconnectedUser: false,
-        reconnectFailed: false
+        clients: {},
+        messageTexts: {},
+        connected: false,
+        disconnectedUser: "",
+        reconnectFailed: false,
+        clientFocusState: {},
+        clientTyping: {}
       });
-      //$errorPage.fadeOut();
-      //$userList.append("<li id=" + username + ">" + username + "</li>");
+
       if (authenticated) {
         socket.emit("add admin", {
           admin: username,
@@ -93,12 +96,40 @@ class AdminChat extends Component {
     });
 
     socket.on("chat message", data => {
-      this.state.clients
-        .find(client => client.roomId == data.roomId)
-        .history.push(data);
+      const { clients } = this.state;
+
+      const message = {
+        isAdmin: data.isAdmin,
+        msg: data.msg,
+        username: data.username ? data.username : null,
+        timestamp: data.timestamp
+      };
       this.setState({
-        clients: [...this.state.clients]
+        clients: {
+          ...clients,
+          [data.roomId]: {
+            ...clients[data.roomId],
+            history: [...clients[data.roomId].history, message]
+          }
+        }
       });
+    });
+
+    socket.on("typing", function(data) {
+      if (data.isTyping)
+        this.setState({
+          clientTyping: {
+            ...this.state.clientTyping,
+            [data.roomId]: { isTyping: true, person: data.person }
+          }
+        });
+      else
+        this.setState({
+          clientTyping: {
+            ...this.state.clientTyping,
+            [data.roomId]: { isTyping: false, person: "" }
+          }
+        });
     });
 
     socket.on("disconnect", () => {
@@ -109,22 +140,20 @@ class AdminChat extends Component {
     });
 
     socket.on("User Disconnected", roomId => {
+      console.log("disconnected user: " + roomId);
+
       this.setState({ disconnectedUser: roomId });
+      this.setState({
+        clients: _.omit(this.state.clients, roomId),
+        messageTexts: _.omit(this.state.messageTexts, roomId),
+        clientFocusState: _.omit(this.state.clientFocusState, roomId),
+        clientTyping: _.omit(this.state.clientTyping, roomId)
+      });
     });
 
     socket.on("reconnect_failed", () => {
       this.setState({ reconnectFailed: true });
     });
-  }
-
-  componentDidUpdate(prevProps, prevState, snapshot) {
-    const { disconnectedUser } = this.state;
-    if (disconnectedUser) {
-      this.setState({
-        clients: this.state.clients.filter(cl => cl.roomId != disconnectedUser),
-        messageTexts: _.omit(this.state.messageTexts, disconnectedUser)
-      });
-    }
   }
 
   notifyAdmin(title, body) {
@@ -149,31 +178,64 @@ class AdminChat extends Component {
     });
   }
 
+  timeoutFunction = id => {
+    this.typing = false;
+    socket.emit("typing", {
+      isTyping: false,
+      roomId: id,
+      person: this.props.username
+    });
+  };
+
   isTyping(e) {
     const roomId = e.target.id;
-    if (e.keyCode === 13) {
+    const { focused } = this.state.clientFocusState[roomId];
+    if (e.charCode === 13) {
       let el = document.createElement("div");
       el.textContent = this.state.messageTexts[roomId];
       let cleanedMessage = el.textContent;
+
       if (cleanedMessage && this.state.connected) {
         this.setState({
           messageTexts: { ...this.state.messageTexts, [roomId]: "" }
         });
         let time = "" + new Date();
-        //this.setState({ newMessage: { msg: cleanedMessage, timestamp: time } });
+
         socket.emit("chat message", {
           roomId: roomId,
           msg: cleanedMessage,
           timestamp: time
         });
       }
+      clearTimeout(this.timeout);
+      this.timeoutFunction();
+    } else if (e.charCode !== undefined) {
+      if (this.typing === false && focused) {
+        this.typing = true;
+        socket.emit("typing", {
+          isTyping: true,
+          roomId: roomId,
+          person: this.props.username
+        });
+      } else {
+        clearTimeout(this.timeout);
+        this.timeout = setTimeout(() => {
+          this.timeoutFunction(roomId);
+        }, 2000);
+      }
     }
   }
 
   render() {
-    const { reconnectFailed, clients, disconnectedUser } = this.state;
-    console.log(clients);
-    const clientInterfaces = clients.map(client => {
+    const {
+      reconnectFailed,
+      clients,
+      disconnectedUser,
+      messageTexts,
+      clientTyping
+    } = this.state;
+
+    const clientInterfaces = Object.values(clients).map(client => {
       let chatAreaStyle;
       if (!client.justJoined) {
         chatAreaStyle = { border: "2px solid red" };
@@ -196,13 +258,35 @@ class AdminChat extends Component {
               </li>
             ))}
           </ul>
-          <div className="typing" />
+          {clientTyping[client.roomId].isTyping &&
+          clientTyping[client.roomId].person ? (
+            <div className="typing">
+              <small>{clientTyping[client.roomId].person} is typing...</small>
+            </div>
+          ) : null}
           <input
             className="adminInputMessage"
             id={client.roomId}
             placeholder="Type here..."
             onKeyPress={this.isTyping}
             onChange={this.handleChange}
+            onFocus={() =>
+              this.setState({
+                clientFocusState: {
+                  ...this.clientFocusState,
+                  [client.roomId]: { focused: true }
+                }
+              })
+            }
+            onBlur={() =>
+              this.setState({
+                clientFocusState: {
+                  ...this.clientFocusState,
+                  [client.roomId]: { focused: false }
+                }
+              })
+            }
+            value={messageTexts[client.roomId]}
           />
         </div>
       );

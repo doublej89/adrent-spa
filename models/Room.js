@@ -10,7 +10,8 @@ const roomSchema = new Schema({
     {
       isAdmin: { type: Boolean, required: true },
       msg: { type: String, required: true },
-      userName: String
+      username: String,
+      timestamp: String
     }
   ]
 });

@@ -8,6 +8,8 @@ import Paper from "@material-ui/core/Paper";
 import SearchItem from "./SearchItem";
 import { connect } from "react-redux";
 import { getAll, getProductsByCat } from "../../actions/productActions";
+import TopCategory from "./TopCategory";
+import Typography from "@material-ui/core/Typography";
 
 const categories = [
   "Market",
@@ -20,8 +22,7 @@ const categories = [
 
 const styles = {
   container: {
-    flexGrow: 1,
-    height: 540
+    flexGrow: 1
   },
   textField: {
     width: 292,
@@ -53,6 +54,7 @@ class Search extends Component {
   constructor(props) {
     super(props);
     this.searchByCategory = this.searchByCategory.bind(this);
+    this.searchByLocation = this.searchByLocation.bind(this);
     this.initMap = this.initMap.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -60,25 +62,49 @@ class Search extends Component {
     this.state = {
       category: "",
       productName: "",
-      distance: 0
+      distance: 0,
+      topCategories: []
     };
   }
 
   componentDidMount() {
-    if (!this.props.match.params.catagoryId) {
-      this.props.getAll();
-    } else {
+    if (this.props.match.params.catagoryId) {
       this.searchByCategory(this.props.match.params.catagoryId);
+    } else if (this.props.match.params.coords) {
+      this.searchByLocation(this.props.match.params.coords);
+    } else {
+      this.props.getAll();
     }
     //this.renderMap();
   }
 
   componentDidUpdate() {
     this.renderMap();
+    const { products } = this.props;
+    const { topCategories } = this.state;
+    if (products) {
+      products.forEach(prod => {
+        if (prod.categories.length > 0) {
+          prod.categories.forEach(cat => {
+            let alreadyIncluded = topCategories.some(
+              topcat => topcat._id == cat._id
+            );
+            if (cat.products.length > 1 && !alreadyIncluded) {
+              this.setState({ topCategories: [...topCategories, cat] });
+            }
+          });
+        }
+      });
+    }
   }
 
   searchByCategory(categoryId) {
     this.props.getProductsByCat(categoryId);
+    this.renderMap();
+  }
+
+  searchByLocation(coords) {
+    this.props.getProductByLocation(coords);
     this.renderMap();
   }
 
@@ -116,7 +142,7 @@ class Search extends Component {
       });
 
       var marker = new window.google.maps.Marker({
-        position: { lat: prod.location.lat, lng: prod.location.lng },
+        position: { lat: +prod.location.lat, lng: +prod.location.lng },
         map: map,
         title: prod.location.name
       });
@@ -134,7 +160,7 @@ class Search extends Component {
   render() {
     const { products } = this.props;
     const { classes } = this.props;
-    console.log(this.props);
+    const { topCategories } = this.state;
 
     return (
       <div>
@@ -247,7 +273,8 @@ class Search extends Component {
                             <SearchItem
                               key={prod._id}
                               product={prod}
-                              handleClick={this.searchByCategory}
+                              handleCategorySearch={this.searchByCategory}
+                              handleLocationSearch={this.searchByLocation}
                             />
                           ))
                         : null}
@@ -260,6 +287,16 @@ class Search extends Component {
               </Paper>
             </Grid>
           </Grid>
+        </div>
+        <div style={{ padding: "0 50px", textAlign: "center" }}>
+          <Typography
+            style={{ fontWeight: 300, marginTop: 60, marginBottom: 30 }}
+            variant="h4"
+            gutterBottom
+          >
+            Top Category
+          </Typography>
+          <TopCategory topCategories={topCategories} />
         </div>
       </div>
     );

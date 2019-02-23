@@ -133,7 +133,8 @@ io.on("connection", function(socket) {
     const message = {
       isAdmin: data.isAdmin,
       msg: data.msg,
-      userName: data.userName ? data.userName : null
+      username: data.username ? data.username : null,
+      timestamp: data.timestamp
     };
     Room.findOne({ roomId: data.roomId }).then(room => {
       if (!room) {
@@ -148,7 +149,7 @@ io.on("connection", function(socket) {
         room.save().then(() => console.log("Room: " + room.roomId + " saved"));
       }
     });
-    socket.broadcast.to(data.roomId).emit("chat message", data);
+    io.in(data.roomId).emit("chat message", data);
   });
 
   socket.on("more messages", function() {
@@ -166,6 +167,14 @@ io.on("connection", function(socket) {
       });
       socket.MsgHistoryLen -= 10;
     }
+  });
+
+  socket.on("typing", function(data) {
+    socket.broadcast.to(data.roomId).emit("typing", {
+      isTyping: data.isTyping,
+      person: data.person,
+      roomId: data.roomId
+    });
   });
 
   socket.on("disconnect", function() {

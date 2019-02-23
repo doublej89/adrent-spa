@@ -5,8 +5,8 @@ const productSchema = new Schema({
   name: { type: String, required: true },
   location: {
     name: { type: String },
-    lat: { type: Number },
-    lng: { type: Number }
+    lat: { type: String },
+    lng: { type: String }
   },
   description: { type: String },
   status: { type: String },

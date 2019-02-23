@@ -7,6 +7,7 @@ import Signin from "./components/auth/Signin";
 import Signup from "./components/auth/Signup";
 import Chat from "./components/Chat";
 import AdminChat from "./components/AdminChat";
+import Category from "./components/Category";
 import { connect } from "react-redux";
 
 class App extends Component {
@@ -30,6 +31,7 @@ class App extends Component {
             <Route path="/signin" exact component={Signin} />
             <Route path="/signup" exact component={Signup} />
             <Route path="/adminchat" exact component={AdminChat} />
+            <Route path="/category/:id" exact component={Category} />
           </Switch>
           {authenticated && id && !isAdmin ? (
             <Chat roomId={id} authenticated={authenticated} />

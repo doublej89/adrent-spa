@@ -77,8 +77,8 @@ class ProductDetails extends Component {
     const { product } = this.props;
     if (product && product.location) {
       var canter = {
-        lat: product.location.lat,
-        lng: product.location.lng
+        lat: +product.location.lat,
+        lng: +product.location.lng
       };
 
       var map = new window.google.maps.Map(document.getElementById("map"), {
@@ -92,8 +92,8 @@ class ProductDetails extends Component {
 
       var marker = new window.google.maps.Marker({
         position: {
-          lat: product.location.lat,
-          lng: product.location.lng
+          lat: +product.location.lat,
+          lng: +product.location.lng
         },
         map: map,
         title: product.location.name

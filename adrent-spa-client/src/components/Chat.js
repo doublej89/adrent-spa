@@ -14,16 +14,19 @@ class Chat extends Component {
   constructor(props) {
     super(props);
     this.messagesRef = React.createRef();
+    this.inputMessageRef = React.createRef();
     this.state = {
       messages: [],
-      nextMessage: {},
-      newMessage: {},
       messageText: "",
-      logMessage: "",
       disabled: false,
-      reconnectFailed: false
+      reconnectFailed: false,
+      isTyping: false
     };
     this.handleChange = this.handleChange.bind(this);
+    this.messageSubmit = this.messageSubmit.bind(this);
+    this.timeoutFunction = this.timeoutFunction.bind(this);
+    this.typing = false;
+    this.timeout = undefined;
   }
 
   componentDidMount() {
@@ -59,12 +62,23 @@ class Chat extends Component {
     });
 
     socket.on("log message", text => {
-      this.setState({ logMessage: text });
+      const logMessage = {
+        isAdmin: true,
+        msg: text,
+        timestamp: "" + new Date()
+      };
+      this.setState({ messages: [...this.state.messages, logMessage] });
     });
 
     socket.on("chat message", data => {
       //this.setState({ nextMessage: { ...data } });
       this.setState({ messages: [...this.state.messages, data] });
+    });
+
+    socket.on("typing", function(data) {
+      if (data.isTyping && data.person != "Client")
+        this.setState({ isTyping: true });
+      else this.setState({ isTyping: false });
     });
 
     socket.on("disconnect", () => {
@@ -81,7 +95,7 @@ class Chat extends Component {
           disabled: this.state.disabled ? false : this.state.disabled,
           reconnectFailed: false
         });
-        if (this.props.authenticated && this.props.roomId)
+        if (active && this.props.roomId)
           socket.emit("add user", {
             roomId: this.props.roomId
           });
@@ -125,20 +139,37 @@ class Chat extends Component {
   };
 
   messageSubmit(e) {
-    if (e.keyCode === 13) {
+    const { roomId } = this.props;
+    if (e.charCode === 13) {
       let el = document.createElement("div");
       el.textContent = this.state.messageText;
       let cleanedMessage = el.textContent;
       if (cleanedMessage) {
         this.setState({ messageText: "" });
         let time = "" + new Date();
-        //this.setState({ newMessage: { msg: cleanedMessage, timestamp: time } });
-        //this.setState({ messages });
         socket.emit("chat message", {
           roomId: "null",
           msg: cleanedMessage,
           timestamp: time
         });
+      }
+      clearTimeout(this.timeout);
+      this.timeoutFunction();
+    } else {
+      if (
+        this.typing === false &&
+        document.activeElement ===
+          ReactDOM.findDOMNode(this.inputMessageRef.current)
+      ) {
+        this.typing = true;
+        socket.emit("typing", {
+          isTyping: true,
+          roomId: roomId,
+          person: "Client"
+        });
+      } else {
+        clearTimeout(this.timeout);
+        this.timeout = setTimeout(this.timeoutFunction, 2000);
       }
     }
   }
@@ -147,15 +178,24 @@ class Chat extends Component {
     this.setState({ messageText: e.target.value });
   }
 
+  timeoutFunction() {
+    const { roomId } = this.props;
+    this.typing = false;
+    socket.emit("typing", {
+      isTyping: false,
+      roomId: roomId,
+      person: "Client"
+    });
+  }
+
   render() {
     const { roomId } = this.props;
     const {
-      logMessage,
-      nextMessage,
       disabled,
-      newMessage,
       reconnectFailed,
-      messageText
+      messageText,
+      messages,
+      isTyping
     } = this.state;
     let inputBoxPlaceholder = "";
     if (disabled) {
@@ -165,7 +205,6 @@ class Chat extends Component {
     } else {
       inputBoxPlaceholder = "Type here...";
     }
-    let time = "" + new Date();
 
     return (
       <SlideToggle
@@ -196,7 +235,7 @@ class Chat extends Component {
                   className="messages"
                 >
                   <div className="msg_push_old" />
-                  {this.state.messages.map(message => {
+                  {messages.map(message => {
                     let sender;
                     if (message.isAdmin) sender = "msg_a";
                     else sender = "msg_b";
@@ -209,36 +248,15 @@ class Chat extends Component {
                       </div>
                     );
                   })}
-                  {logMessage ? (
-                    <div className="msg_a">
-                      {logMessage}
-                      <span className="timestamp">
-                        {time.toLocaleString().substr(15, 6)}
-                      </span>
-                    </div>
-                  ) : null}
-                  {/* {Object.keys(nextMessage).length > 0 ? (
-                    <div className={nextMessage.isAdmin ? "msg_a" : "msg_b"}>
-                      {nextMessage.msg}
-                      <span className="timestamp">
-                        {nextMessage.timestamp.toLocaleString().substr(15, 6)}
-                      </span>
-                    </div>
-                  ) : null} */}
-                  {/* {Object.keys(newMessage).length > 0 ? (
-                    <div className="msg_b">
-                      {newMessage.msg}
-                      <span className="timestamp">
-                        {newMessage.timestamp.toLocaleString().substr(15, 6)}
-                      </span>
-                    </div>
-                  ) : null} */}
                   <div className="msg_push_new" />
                 </div>
-                <div className="typing" />
+                {isTyping ? (
+                  <div className="typing">Adrent is typing...</div>
+                ) : null}
                 <input
                   disabled={disabled}
                   className="inputMessage"
+                  ref={this.inputMessageRef}
                   value={messageText}
                   onChange={this.handleChange}
                   rows="1"
@@ -254,4 +272,4 @@ class Chat extends Component {
   }
 }
 
-export default connect(null)(Chat);
+export default Chat;
