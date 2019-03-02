@@ -10,6 +10,7 @@ import { connect } from "react-redux";
 import { getAll, getProductsByCat } from "../../actions/productActions";
 import TopCategory from "./TopCategory";
 import Typography from "@material-ui/core/Typography";
+import ReactPaginate from "react-paginate";
 
 const categories = [
   "Market",
@@ -58,12 +59,14 @@ class Search extends Component {
     this.initMap = this.initMap.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.handlePageClick = this.handlePageClick.bind(this);
 
     this.state = {
       category: "",
       productName: "",
       distance: 0,
-      topCategories: []
+      topCategories: [],
+      page: 1
     };
   }
 
@@ -114,11 +117,12 @@ class Search extends Component {
 
   handleSubmit(e) {
     e.preventDefault();
-    const searchData = {
-      category: this.state.category,
-      productName: this.state.productName,
-      distance: this.state.distance
-    };
+    this.props.getAll(null, this.state.productName);
+    // const searchData = {
+    //   category: this.state.category,
+    //   productName: this.state.productName,
+    //   distance: this.state.distance
+    // };
     //this.props.getSearchedItems(searchData);
     this.setState({
       category: "",
@@ -157,9 +161,17 @@ class Search extends Component {
     window.initMap = this.initMap;
   };
 
+  handlePageClick(data) {
+    let page = data.selected + 1;
+    if (this.props.search) {
+      this.props.getAll(page, this.props.search);
+    } else {
+      this.props.getAll(page);
+    }
+  }
+
   render() {
-    const { products } = this.props;
-    const { classes } = this.props;
+    const { products, classes, pages } = this.props;
     const { topCategories } = this.state;
 
     return (
@@ -259,7 +271,6 @@ class Search extends Component {
                   <Grid
                     style={{
                       maxHeight: 540,
-                      overflowY: "scroll",
                       display: "flex",
                       flexDirection: "column"
                     }}
@@ -267,7 +278,7 @@ class Search extends Component {
                     xs={12}
                     md={6}
                   >
-                    <div>
+                    <div style={{ overflowY: "scroll" }}>
                       {products
                         ? products.map(prod => (
                             <SearchItem
@@ -279,6 +290,19 @@ class Search extends Component {
                           ))
                         : null}
                     </div>
+                    <ReactPaginate
+                      pageCount={pages}
+                      pageRangeDisplayed={3}
+                      previousLabel={"previous"}
+                      nextLabel={"next"}
+                      breakClassName={"break-me"}
+                      containerClassName={"pagination"}
+                      subContainerClassName={"pages pagination"}
+                      activeClassName={"active"}
+                      onPageChange={this.handlePageClick}
+                      breakLabel={"..."}
+                      activeClassName={"active"}
+                    />
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <div id="map" style={{ width: "100%", height: "100%" }} />
@@ -313,7 +337,13 @@ function loadScript(url) {
 }
 
 const mapStateToProps = state => {
-  return { products: state.productStore.products };
+  return {
+    products: state.productStore.products,
+    current: action.productStore.current,
+    pages: action.productStore.pages,
+    noMatch: action.productStore.noMatch,
+    search: action.productStore.search
+  };
 };
 
 export default connect(

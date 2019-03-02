@@ -2,12 +2,50 @@ const Product = require("../models/Product");
 const Category = require("../models/Category");
 
 exports.getAll = function(req, res, next) {
-  Product.find({})
-    .populate("categories")
-    .exec((err, products) => {
-      if (err) return res.status(404).send(err);
-      res.status(200).json(products);
-    });
+  const perPage = 5;
+  const pageQuery = parseInt(req.query.page);
+  const pageNumber = pageQuery ? pageQuery : 1;
+  let noMatch = null;
+
+  if (req.query.search) {
+    const regex = new RegExp(escapeRegex(req.query.search), "gi");
+    Product.find({ name: regex })
+      .populate("categories")
+      .skip(perPage * pageNumber - perPage)
+      .limit(perPage)
+      .exec((err, products) => {
+        Product.count({ name: regex }).exec((err, count) => {
+          if (err) return res.status(404).send(err);
+          if (products.length < 1) {
+            noMatch = "No products match that query, please try again.";
+          }
+          res.status(200).json({
+            products: products,
+            current: pageNumber,
+            pages: Math.ceil(count / perPage),
+            noMatch: noMatch,
+            search: req.query.search
+          });
+        });
+      });
+  } else {
+    Product.find({})
+      .populate("categories")
+      .skip(perPage * pageNumber - perPage)
+      .limit(perPage)
+      .exec((err, products) => {
+        Product.count({ name: regex }).exec((err, count) => {
+          if (err) return res.status(404).send(err);
+          res.status(200).json({
+            products: products,
+            current: pageNumber,
+            pages: Math.ceil(count / perPage),
+            noMatch: noMatch,
+            search: false
+          });
+        });
+      });
+  }
 };
 
 exports.addProduct = function(req, res, next) {
@@ -128,3 +166,9 @@ exports.getProductByLocation = function(req, res, next) {
     .populate("categories")
     .then(product => res.json(product));
 };
+
+exports.getSearchResults = function(req, res, next) {};
+
+function escapeRegex(text) {
+  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+}

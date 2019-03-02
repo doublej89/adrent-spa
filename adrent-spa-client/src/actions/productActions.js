@@ -2,9 +2,17 @@ import { GET_ALL, GET_ALL_BY_CATEGORY, GET_PRODUCT } from "./types";
 import isEmpty from "../utils/isEmpty";
 import axios from "axios";
 
-export const getAll = () => dispatch => {
+export const getAll = (...args) => dispatch => {
+  let url = "/api/product";
+  if (args[0] && args[1]) {
+    url = `${url}?page=${args[0]}&search=${args[1]}`;
+  } else if (args[0] && !args[1]) {
+    url = `${url}?page=${args[0]}`;
+  } else if (!args[0] && args[1]) {
+    url = `${url}?search=${args[1]}`;
+  }
   axios
-    .get("/api/product")
+    .get(url)
     .then(response =>
       dispatch({
         type: GET_ALL,
