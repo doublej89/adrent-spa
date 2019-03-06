@@ -2,47 +2,65 @@ const Product = require("../models/Product");
 const Category = require("../models/Category");
 
 exports.getAll = function(req, res, next) {
-  const perPage = 5;
-  const pageQuery = parseInt(req.query.page);
-  const pageNumber = pageQuery ? pageQuery : 1;
+  // const perPage = 5;
+  // const pageQuery = parseInt(req.query.page);
+  // const pageNumber = pageQuery ? pageQuery : 1;
   let noMatch = null;
 
   if (req.query.search) {
     const regex = new RegExp(escapeRegex(req.query.search), "gi");
     Product.find({ name: regex })
+      // .skip(perPage * pageNumber - perPage)
+      // .limit(perPage)
       .populate("categories")
-      .skip(perPage * pageNumber - perPage)
-      .limit(perPage)
       .exec((err, products) => {
-        Product.count({ name: regex }).exec((err, count) => {
-          if (err) return res.status(404).send(err);
-          if (products.length < 1) {
-            noMatch = "No products match that query, please try again.";
-          }
+        // Product.countDocuments({ name: regex }).exec((err, count) => {
+        //   if (err) return res.status(404).send(err);
+        //   if (products.length < 1) {
+        //     noMatch = "No products match that query, please try again.";
+        //   }
+        //   console.log(count);
+        //   res.status(200).json({
+        //     products: products,
+        //     current: pageNumber,
+        //     pages: Math.ceil(count / perPage),
+        //     noMatch: noMatch,
+        //     search: req.query.search
+        //   });
+        // });
+        if (err) return res.status(404).send(err);
+        if (products.length < 1) {
+          noMatch = "No products match that query, please try again.";
+        }
           res.status(200).json({
             products: products,
-            current: pageNumber,
-            pages: Math.ceil(count / perPage),
             noMatch: noMatch,
             search: req.query.search
           });
-        });
       });
   } else {
     Product.find({})
+      // .skip(perPage * pageNumber - perPage)
+      // .limit(perPage)
       .populate("categories")
-      .skip(perPage * pageNumber - perPage)
-      .limit(perPage)
       .exec((err, products) => {
-        Product.count({ name: regex }).exec((err, count) => {
-          if (err) return res.status(404).send(err);
-          res.status(200).json({
-            products: products,
-            current: pageNumber,
-            pages: Math.ceil(count / perPage),
-            noMatch: noMatch,
-            search: false
-          });
+        // Product.countDocuments().exec((err, count) => {
+        //   if (err) return res.status(404).send(err);
+        //   console.log(count);
+
+        //   res.status(200).json({
+        //     products: products,
+        //     current: pageNumber,
+        //     pages: Math.ceil(count / perPage),
+        //     noMatch: noMatch,
+        //     search: false
+        //   });
+        // });
+        if (err) return res.status(404).send(err);
+        res.status(200).json({
+          products: products,
+          noMatch: noMatch,
+          search: false
         });
       });
   }

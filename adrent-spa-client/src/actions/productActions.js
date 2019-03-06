@@ -2,23 +2,26 @@ import { GET_ALL, GET_ALL_BY_CATEGORY, GET_PRODUCT } from "./types";
 import isEmpty from "../utils/isEmpty";
 import axios from "axios";
 
-export const getAll = (...args) => dispatch => {
+export const getAll = (page, search) => dispatch => {
   let url = "/api/product";
-  if (args[0] && args[1]) {
-    url = `${url}?page=${args[0]}&search=${args[1]}`;
-  } else if (args[0] && !args[1]) {
-    url = `${url}?page=${args[0]}`;
-  } else if (!args[0] && args[1]) {
-    url = `${url}?search=${args[1]}`;
+  if (page && search) {
+    url = `/api/product?page=${page}&search=${search}`;
+  } else if (page && !search) {
+    url = `/api/product?page=${page}`;
+  } else if (!page && search) {
+    url = `/api/product?search=${search}`;
   }
   axios
     .get(url)
-    .then(response =>
+    .then(response => {
+      console.log(response);
+      console.log(dispatch);
+
       dispatch({
         type: GET_ALL,
         payload: response.data
-      })
-    )
+      });
+    })
     .catch(err => console.log(err));
 };
 

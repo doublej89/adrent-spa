@@ -4,8 +4,8 @@ const initialState = {
   product: {},
   loading: false,
   categoryName: "",
-  current: null,
-  pages: null,
+  // current: null,
+  // pages: null,
   noMatch: null
 };
 
@@ -16,8 +16,8 @@ export default function(state = initialState, action) {
         ...state,
         loading: false,
         products: action.payload.products,
-        current: action.payload.current,
-        pages: action.payload.pages,
+        // current: action.payload.current,
+        // pages: action.payload.pages,
         noMatch: action.payload.noMatch,
         search: action.payload.search
       };

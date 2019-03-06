@@ -11,6 +11,8 @@ import { getAll, getProductsByCat } from "../../actions/productActions";
 import TopCategory from "./TopCategory";
 import Typography from "@material-ui/core/Typography";
 import ReactPaginate from "react-paginate";
+import PaginationActions from '../PaginationActions';
+import TablePagination from '@material-ui/core/TablePagination';
 
 const categories = [
   "Market",
@@ -66,7 +68,7 @@ class Search extends Component {
       productName: "",
       distance: 0,
       topCategories: [],
-      page: 1
+      page: 0
     };
   }
 
@@ -161,14 +163,18 @@ class Search extends Component {
     window.initMap = this.initMap;
   };
 
-  handlePageClick(data) {
-    let page = data.selected + 1;
-    if (this.props.search) {
-      this.props.getAll(page, this.props.search);
-    } else {
-      this.props.getAll(page);
-    }
-  }
+  // handlePageClick(data) {
+  //   let page = data.selected + 1;
+  //   if (this.props.search) {
+  //     this.props.getAll(page, this.props.search);
+  //   } else {
+  //     this.props.getAll(page);
+  //   }
+  // }
+
+  handleChangePage = (event, page) => {
+    this.setState({ page });
+  };
 
   render() {
     const { products, classes, pages } = this.props;
@@ -272,13 +278,14 @@ class Search extends Component {
                     style={{
                       maxHeight: 540,
                       display: "flex",
-                      flexDirection: "column"
+                      flexDirection: "column",
+                      overflowY: "scroll"
                     }}
                     item
                     xs={12}
                     md={6}
                   >
-                    <div style={{ overflowY: "scroll" }}>
+                    <div>
                       {products
                         ? products.map(prod => (
                             <SearchItem
@@ -290,24 +297,29 @@ class Search extends Component {
                           ))
                         : null}
                     </div>
-                    <ReactPaginate
-                      pageCount={pages}
-                      pageRangeDisplayed={3}
-                      previousLabel={"previous"}
-                      nextLabel={"next"}
-                      breakClassName={"break-me"}
-                      containerClassName={"pagination"}
-                      subContainerClassName={"pages pagination"}
-                      activeClassName={"active"}
-                      onPageChange={this.handlePageClick}
-                      breakLabel={"..."}
-                      activeClassName={"active"}
-                    />
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <div id="map" style={{ width: "100%", height: "100%" }} />
                   </Grid>
                 </Grid>
+                <div>
+                <TablePagination
+                  colSpan={3}
+                  count={products.length}
+                  rowsPerPage={5}
+                  page={page}
+                  SelectProps={{
+                    native: true,
+                  }}
+                  onChangePage={this.handleChangePage}
+                  ActionsComponent={PaginationActions}
+                />
+                </div>
+                {/* <Grid container>
+                  <Grid item xs={12}>
+                    
+                  </Grid>
+                </Grid> */}
               </Paper>
             </Grid>
           </Grid>
@@ -339,10 +351,10 @@ function loadScript(url) {
 const mapStateToProps = state => {
   return {
     products: state.productStore.products,
-    current: action.productStore.current,
-    pages: action.productStore.pages,
-    noMatch: action.productStore.noMatch,
-    search: action.productStore.search
+    current: state.productStore.current,
+    pages: state.productStore.pages,
+    noMatch: state.productStore.noMatch,
+    search: state.productStore.search
   };
 };
 

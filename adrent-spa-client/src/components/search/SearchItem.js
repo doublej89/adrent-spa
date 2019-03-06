@@ -30,7 +30,9 @@ class SearchItem extends Component {
       handleCategorySearch,
       handleLocationSearch
     } = this.props;
-    const coords = `${product.location.lat},${product.location.lng}`;
+    const coords = `${product && product.location ? product.location.lat : 0},${
+      product && product.location ? product.location.lng : 0
+    }`;
 
     return (
       <Card style={{ border: "1px solid #e8e8e8", marginBottom: 10 }}>
