@@ -1,10 +1,16 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const config = require("../config");
+const validateRegisterInput = require("../validation/signup");
+const validateLoginInput = require("../validation/signin");
 
 exports.signup = function(req, res, next) {
   console.log(req.body);
   let isAdmin = false;
+  const { errors, isValid } = validateRegisterInput(req.body);
+  if (!isValid) {
+    return res.status(400).json({ errorMessage: errors });
+  }
   const email = req.body.email;
   const password = req.body.password;
   const emailDomain = req.body.email.split("@")[1].split(".")[0];
@@ -17,7 +23,7 @@ exports.signup = function(req, res, next) {
   User.findOne({ email: email })
     .then(existingUser => {
       if (existingUser) {
-        return res.status(422).send({ error: "Email is in use!" });
+        return res.status(422).send({ errorMessage: "Email is in use!" });
       }
       const user = new User({
         username: req.body.username,
@@ -35,7 +41,7 @@ exports.signup = function(req, res, next) {
             (err, token) => {
               if (err)
                 return res.status(422).send({
-                  error: "Something went wrong while creating token!"
+                  errorMessage: "Something went wrong while creating token!"
                 });
               res.json({
                 success: true,
@@ -54,22 +60,43 @@ exports.signup = function(req, res, next) {
 
 exports.signin = function(req, res, next) {
   let isAdmin = false;
+  const { errors, isValid } = validateLoginInput(req.body);
+  if (!isValid) {
+    return res.status(400).json({ errorMessage: errors });
+  }
   const emailDomain = req.body.email.split("@")[1].split(".")[0];
   if (emailDomain === "admin") {
     isAdmin = true;
   }
-  const payload = { sub: req.user.id, iat: new Date().getTime() };
-  jwt.sign(payload, config.secret, { expiresIn: 7200 }, (err, token) => {
-    if (err)
-      return res
-        .status(422)
-        .send({ error: "Something went wrong while creating token!" });
-    res.json({
-      success: "successfully signed in",
-      token: token,
-      id: req.user.id,
-      isAdmin: isAdmin,
-      username: isAdmin ? req.user.username : null
-    });
-  });
+  User.findOne({ email: req.body.email })
+    .then(user => {
+      if (!user) {
+        return res.status(404).json({ errorMessage: "Incorrect username." });
+      }
+      user.comparePassword(req.body.password, function(err, isMatch) {
+        if (err) {
+          console.log(err);
+          return res.status(404).json(err);
+        }
+        if (!isMatch) {
+          return res.status(404).json({ errorMessage: "Incorrect password." });
+        }
+        const payload = { sub: user._id, iat: new Date().getTime() };
+        jwt.sign(payload, config.secret, { expiresIn: 7200 }, (err, token) => {
+          if (err) {
+            return res.status(422).send({
+              errorMessage: "Something went wrong while creating token!"
+            });
+          }
+          res.json({
+            success: "successfully signed in",
+            token: token,
+            id: user._id,
+            isAdmin: isAdmin,
+            username: isAdmin ? user.username : null
+          });
+        });
+      });
+    })
+    .catch(err => res.status(400).json(err));
 };

@@ -11,8 +11,8 @@ import { getAll, getProductsByCat } from "../../actions/productActions";
 import TopCategory from "./TopCategory";
 import Typography from "@material-ui/core/Typography";
 import ReactPaginate from "react-paginate";
-import PaginationActions from '../PaginationActions';
-import TablePagination from '@material-ui/core/TablePagination';
+import PaginationActions from "../PaginationActions";
+import TablePagination from "@material-ui/core/TablePagination";
 
 const categories = [
   "Market",
@@ -61,14 +61,15 @@ class Search extends Component {
     this.initMap = this.initMap.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
-    this.handlePageClick = this.handlePageClick.bind(this);
+    //this.handlePageClick = this.handlePageClick.bind(this);
 
     this.state = {
       category: "",
       productName: "",
       distance: 0,
       topCategories: [],
-      page: 0
+      page: 0,
+      rowsPerPage: 5
     };
   }
 
@@ -176,9 +177,13 @@ class Search extends Component {
     this.setState({ page });
   };
 
+  handleChangeRowsPerPage = event => {
+    this.setState({ page: 0, rowsPerPage: event.target.value });
+  };
+
   render() {
-    const { products, classes, pages } = this.props;
-    const { topCategories } = this.state;
+    const { products, classes } = this.props;
+    const { topCategories, page, rowsPerPage } = this.state;
 
     return (
       <div>
@@ -287,14 +292,19 @@ class Search extends Component {
                   >
                     <div>
                       {products
-                        ? products.map(prod => (
-                            <SearchItem
-                              key={prod._id}
-                              product={prod}
-                              handleCategorySearch={this.searchByCategory}
-                              handleLocationSearch={this.searchByLocation}
-                            />
-                          ))
+                        ? products
+                            .slice(
+                              page * rowsPerPage,
+                              page * rowsPerPage + rowsPerPage
+                            )
+                            .map(prod => (
+                              <SearchItem
+                                key={prod._id}
+                                product={prod}
+                                handleCategorySearch={this.searchByCategory}
+                                handleLocationSearch={this.searchByLocation}
+                              />
+                            ))
                         : null}
                     </div>
                   </Grid>
@@ -303,17 +313,20 @@ class Search extends Component {
                   </Grid>
                 </Grid>
                 <div>
-                <TablePagination
-                  colSpan={3}
-                  count={products.length}
-                  rowsPerPage={5}
-                  page={page}
-                  SelectProps={{
-                    native: true,
-                  }}
-                  onChangePage={this.handleChangePage}
-                  ActionsComponent={PaginationActions}
-                />
+                  <TablePagination
+                    style={{ borderBottom: "none" }}
+                    rowsPerPageOptions={[5, 6]}
+                    colSpan={3}
+                    count={products.length}
+                    rowsPerPage={5}
+                    page={page}
+                    SelectProps={{
+                      native: true
+                    }}
+                    onChangePage={this.handleChangePage}
+                    onChangeRowsPerPage={this.handleChangeRowsPerPage}
+                    ActionsComponent={PaginationActions}
+                  />
                 </div>
                 {/* <Grid container>
                   <Grid item xs={12}>

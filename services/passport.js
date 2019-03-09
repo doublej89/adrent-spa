@@ -5,29 +5,29 @@ const JwtStrategy = require("passport-jwt").Strategy;
 const ExtractJwt = require("passport-jwt").ExtractJwt;
 const LocalStrategy = require("passport-local");
 
-const localLogin = new LocalStrategy({ usernameField: "email" }, function(
-  email,
-  password,
-  done
-) {
-  User.findOne({ email: email })
-    .then(user => {
-      if (!user) {
-        return done(null, false, { message: "Incorrect username." });
-      }
-      user.comparePassword(password, function(err, isMatch) {
-        if (err) {
-          console.log(err);
-          return done(err);
-        }
-        if (!isMatch) {
-          return done(null, false, { message: "Incorrect password." });
-        }
-        return done(null, user);
-      });
-    })
-    .catch(err => done(err));
-});
+// const localLogin = new LocalStrategy({ usernameField: "email" }, function(
+//   email,
+//   password,
+//   done
+// ) {
+//   User.findOne({ email: email })
+//     .then(user => {
+//       if (!user) {
+//         return done(null, false, { message: "Incorrect username." });
+//       }
+//       user.comparePassword(password, function(err, isMatch) {
+//         if (err) {
+//           console.log(err);
+//           return done(err);
+//         }
+//         if (!isMatch) {
+//           return done(null, false, { message: "Incorrect password." });
+//         }
+//         return done(null, user);
+//       });
+//     })
+//     .catch(err => done(err));
+// });
 
 const jwtOptions = {
   jwtFromRequest: ExtractJwt.fromHeader("authorization"),
@@ -47,4 +47,4 @@ const jwtLogin = new JwtStrategy(jwtOptions, function(payload, done) {
 });
 
 passport.use(jwtLogin);
-passport.use(localLogin);
+//passport.use(localLogin);
