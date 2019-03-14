@@ -2,65 +2,76 @@ const Product = require("../models/Product");
 const Category = require("../models/Category");
 
 exports.getAll = function(req, res, next) {
-  // const perPage = 5;
-  // const pageQuery = parseInt(req.query.page);
-  // const pageNumber = pageQuery ? pageQuery : 1;
   let noMatch = null;
 
-  if (req.query.search) {
-    const regex = new RegExp(escapeRegex(req.query.search), "gi");
+  if (req.query.searchProduct) {
+    const regex = new RegExp(escapeRegex(req.query.searchProduct), "gi");
     Product.find({ name: regex })
-      // .skip(perPage * pageNumber - perPage)
-      // .limit(perPage)
       .populate("categories")
       .exec((err, products) => {
-        // Product.countDocuments({ name: regex }).exec((err, count) => {
-        //   if (err) return res.status(404).send(err);
-        //   if (products.length < 1) {
-        //     noMatch = "No products match that query, please try again.";
-        //   }
-        //   console.log(count);
-        //   res.status(200).json({
-        //     products: products,
-        //     current: pageNumber,
-        //     pages: Math.ceil(count / perPage),
-        //     noMatch: noMatch,
-        //     search: req.query.search
-        //   });
-        // });
         if (err) return res.status(404).send(err);
         if (products.length < 1) {
           noMatch = "No products match that query, please try again.";
         }
-          res.status(200).json({
-            products: products,
-            noMatch: noMatch,
-            search: req.query.search
+        res.status(200).json({
+          products: products,
+          noMatch: noMatch
+        });
+      });
+  } else if (req.query.searchProduct && req.query.searchCategory) {
+    const regex = new RegExp(escapeRegex(req.query.searchProduct), "gi");
+    Product.find({ name: regex })
+      .populate("categories")
+      .exec((err, products) => {
+        let matchProducts = [];
+        if (err) return res.status(404).send(err);
+        if (products.length < 1) {
+          noMatch = "No products match that query, please try again.";
+        } else {
+          products.forEach(product => {
+            let categoryMatch = product.categories.some(
+              ctgry => ctgry.name === req.query.searchCategory
+            );
+            if (categoryMatch) {
+              matchProducts.push(product);
+            }
           });
+          if (matchProducts.length < 1) {
+            noMatch = "No products match that query, please try again.";
+          }
+        }
+        res.status(200).json({
+          products: matchProducts,
+          noMatch: noMatch
+        });
+      });
+  } else if (req.query.searchCategory) {
+    let matchProducts = [];
+    Product.find({})
+      .populate("categories")
+      .exec((err, products) => {
+        if (err) return res.status(404).send(err);
+        products.forEach(product => {
+          let categoryMatch = product.categories.some(
+            ctgry => ctgry.name === req.query.searchCategory
+          );
+          if (categoryMatch) {
+            matchProducts.push(product);
+          }
+        });
+        res.status(200).json({
+          products: matchProducts,
+          noMatch: noMatch
+        });
       });
   } else {
     Product.find({})
-      // .skip(perPage * pageNumber - perPage)
-      // .limit(perPage)
       .populate("categories")
       .exec((err, products) => {
-        // Product.countDocuments().exec((err, count) => {
-        //   if (err) return res.status(404).send(err);
-        //   console.log(count);
-
-        //   res.status(200).json({
-        //     products: products,
-        //     current: pageNumber,
-        //     pages: Math.ceil(count / perPage),
-        //     noMatch: noMatch,
-        //     search: false
-        //   });
-        // });
         if (err) return res.status(404).send(err);
         res.status(200).json({
           products: products,
-          noMatch: noMatch,
-          search: false
+          noMatch: noMatch
         });
       });
   }

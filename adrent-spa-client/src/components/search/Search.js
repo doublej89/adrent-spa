@@ -120,7 +120,7 @@ class Search extends Component {
 
   handleSubmit(e) {
     e.preventDefault();
-    this.props.getAll(null, this.state.productName);
+    this.props.getAll(this.state.productName, this.state.category);
     // const searchData = {
     //   category: this.state.category,
     //   productName: this.state.productName,

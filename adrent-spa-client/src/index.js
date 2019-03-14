@@ -15,7 +15,9 @@ const store = createStore(
   {
     auth: {
       authenticated: localStorage.getItem("token"),
-      roomId: localStorage.getItem("roomId")
+      roomId: localStorage.getItem("roomId"),
+      isAdmin: localStorage.getItem("isAdmin"),
+      username: localStorage.getItem("username")
     }
   },
   composeEnhancer(applyMiddleware(reduxThunk))

@@ -42,6 +42,16 @@ const styles = theme => ({
   },
   submit: {
     marginTop: theme.spacing.unit * 3
+  },
+  alertDanger: {
+    color: "#721c24",
+    backgroundColor: "#f8d7da",
+    borderColor: "#f5c6cb",
+    position: "relative",
+    padding: ".75rem 1.25rem",
+    marginBottom: "1rem",
+    border: "1px solid transparent",
+    borderRadius: ".25rem"
   }
 });
 
@@ -60,7 +70,7 @@ class Signup extends Component {
 
   componentDidUpdate() {
     const { errorMessage } = this.props;
-    if (errorMessage && Object.keys(errorMessage).length > 0) {
+    if (errorMessage) {
       console.log(errorMessage);
     }
   }
@@ -91,11 +101,26 @@ class Signup extends Component {
   };
 
   render() {
-    const { handleSubmit, classes } = this.props;
+    const { handleSubmit, classes, errorMessage } = this.props;
+    let errorAlert;
+
+    if (errorMessage && typeof errorMessage === "string") {
+      errorAlert = <div className={classes.alertDanger}>{errorMessage}</div>;
+    } else if (errorMessage && typeof errorMessage === "object") {
+      errorAlert = (
+        <ul className={classes.alertDanger}>
+          The following errors occured:
+          {errorMessage.map(msg => (
+            <li>{msg}</li>
+          ))}
+        </ul>
+      );
+    }
 
     return (
       <main className={classes.main}>
         <CssBaseline />
+        {errorAlert}
         <Paper className={classes.paper}>
           <Typography component="h1" variant="h5">
             Sign in
@@ -153,8 +178,7 @@ const validate = values => {
 function mapStateToProps(state) {
   return {
     errorMessage: state.auth.errorMessage,
-    authenticated: state.auth.authenticated,
-    errorMessage: state.auth.errorMessage
+    authenticated: state.auth.authenticated
   };
 }
 
