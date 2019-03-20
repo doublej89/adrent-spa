@@ -4,13 +4,16 @@ import axios from "axios";
 
 export const getAll = (searchProduct, searchCategory) => dispatch => {
   let url = "/api/product";
-  if (searchProduct && searchCategory) {
+  if (searchProduct && searchCategory && searchCategory !== 'Select Media') {
     url = `/api/product?searchproduct=${searchProduct}&searchcategory=${searchCategory}`;
-  } else if (searchProduct && !searchCategory) {
+  } else if (searchProduct && (!searchCategory || searchCategory === 'Select Media')) {
     url = `/api/product?searchproduct=${searchProduct}`;
-  } else if (!searchProduct && searchCategory) {
+  } else if (!searchProduct && searchCategory && searchCategory !== 'Select Media') {
     url = `/api/product?searchcategory=${searchCategory}`;
   }
+  console.log(`${searchProduct}, ${searchCategory}`)
+  console.log(url);
+  
   axios
     .get(url)
     .then(response => {

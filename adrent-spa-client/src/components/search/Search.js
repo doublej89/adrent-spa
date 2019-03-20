@@ -10,11 +10,12 @@ import { connect } from "react-redux";
 import { getAll, getProductsByCat } from "../../actions/productActions";
 import TopCategory from "./TopCategory";
 import Typography from "@material-ui/core/Typography";
-import ReactPaginate from "react-paginate";
 import PaginationActions from "../PaginationActions";
 import TablePagination from "@material-ui/core/TablePagination";
+import InputAdornment from '@material-ui/core/InputAdornment';
 
 const categories = [
+  'SelectMedia',
   "Market",
   "Grocery",
   "University",
@@ -84,8 +85,10 @@ class Search extends Component {
     //this.renderMap();
   }
 
-  componentDidUpdate() {
-    this.renderMap();
+  componentDidUpdate(prevProps) {
+    if (prevProps.products.length !== this.props.products.length) {
+      this.renderMap();
+    }
     const { products } = this.props;
     const { topCategories } = this.state;
     if (products) {
@@ -182,7 +185,7 @@ class Search extends Component {
   };
 
   render() {
-    const { products, classes } = this.props;
+    const { products, classes, noMatch } = this.props;
     const { topCategories, page, rowsPerPage } = this.state;
 
     return (
@@ -279,6 +282,9 @@ class Search extends Component {
             <Grid style={{ height: "100%" }} item xs={11}>
               <Paper style={{ height: "100%", padding: 20 }}>
                 <Grid container style={{ height: "100%" }}>
+                {noMatch ? (<Typography gutterBottom variant="h4" component="h2">
+              {noMatch}
+            </Typography>) : null}
                   <Grid
                     style={{
                       maxHeight: 540,
@@ -364,10 +370,7 @@ function loadScript(url) {
 const mapStateToProps = state => {
   return {
     products: state.productStore.products,
-    current: state.productStore.current,
-    pages: state.productStore.pages,
     noMatch: state.productStore.noMatch,
-    search: state.productStore.search
   };
 };
 

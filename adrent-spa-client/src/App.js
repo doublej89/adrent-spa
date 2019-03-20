@@ -8,6 +8,7 @@ import Signup from "./components/auth/Signup";
 import Chat from "./components/Chat";
 import AdminChat from "./components/AdminChat";
 import Category from "./components/Category";
+import Footer from "./components/Footer";
 import { connect } from "react-redux";
 
 class App extends Component {
@@ -33,6 +34,7 @@ class App extends Component {
             <Route path="/adminchat" exact component={AdminChat} />
             <Route path="/category/:id" exact component={Category} />
           </Switch>
+          <Footer />
           {authenticated && id && !isAdmin ? (
             <Chat roomId={id} authenticated={authenticated} />
           ) : null}

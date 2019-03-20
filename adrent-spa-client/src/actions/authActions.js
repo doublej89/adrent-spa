@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AUTH_USER, AUTH_ERROR } from "./types";
+import { AUTH_USER, AUTH_ERROR, CLEAR_ERROR } from "./types";
 
 export const registerUser = (userData, history) => dispatch => {
   axios
@@ -13,8 +13,6 @@ export const registerUser = (userData, history) => dispatch => {
       history.push("/");
     })
     .catch(err => {
-      console.log(err.response.data);
-
       dispatch({
         type: AUTH_ERROR,
         payload: err.response.data.errorMessage
@@ -34,13 +32,17 @@ export const signinUser = (userData, history) => dispatch => {
       history.push("/");
     })
     .catch(err => {
-      console.log(err.response.data);
       dispatch({
         type: AUTH_ERROR,
         payload: err.response.data.errorMessage
       });
     });
 };
+
+export const clearError = () => ({
+  type: CLEAR_ERROR,
+  payload: ""
+});
 
 export const signout = () => {
   localStorage.removeItem("token");

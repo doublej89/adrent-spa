@@ -4,7 +4,7 @@ import { compose } from "redux";
 import { connect } from "react-redux";
 import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
-import { registerUser } from "../../actions/authActions";
+import { registerUser, clearError } from "../../actions/authActions";
 import FormControl from "@material-ui/core/FormControl";
 import Input from "@material-ui/core/Input";
 import InputLabel from "@material-ui/core/InputLabel";
@@ -50,6 +50,7 @@ const styles = theme => ({
     position: "relative",
     padding: ".75rem 1.25rem",
     marginBottom: "1rem",
+    marginTop: "2rem",
     border: "1px solid transparent",
     borderRadius: ".25rem"
   }
@@ -84,10 +85,9 @@ class Signup extends Component {
   }
 
   renderInput = ({ input, label, meta, type }) => {
-    //const className = `field ${meta.error && meta.touched ? "error" : ""}`;
     return (
       <div style={{ marginTop: 16 }}>
-        <Input {...input} type={type} />
+        <Input {...input} type={type} style={{ width: "100%" }} />
         {this.renderError(meta)}
       </div>
     );
@@ -211,7 +211,7 @@ function mapStateToProps(state) {
 export default compose(
   connect(
     mapStateToProps,
-    { registerUser }
+    { registerUser, clearError }
   ),
   reduxForm({ form: "signup", validate }),
   withStyles(styles)

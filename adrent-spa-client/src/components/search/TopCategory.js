@@ -10,7 +10,8 @@ import Typography from "@material-ui/core/Typography";
 const styles = theme => ({
   gridList: {
     width: "100%",
-    height: 460
+    height: 520,
+    
   },
   gridListRoot: {
     display: "flex",

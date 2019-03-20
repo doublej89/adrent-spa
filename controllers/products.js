@@ -4,8 +4,8 @@ const Category = require("../models/Category");
 exports.getAll = function(req, res, next) {
   let noMatch = null;
 
-  if (req.query.searchProduct) {
-    const regex = new RegExp(escapeRegex(req.query.searchProduct), "gi");
+  if (req.query.searchproduct) {
+    const regex = new RegExp(escapeRegex(req.query.searchproduct), "gi");
     Product.find({ name: regex })
       .populate("categories")
       .exec((err, products) => {
@@ -18,8 +18,8 @@ exports.getAll = function(req, res, next) {
           noMatch: noMatch
         });
       });
-  } else if (req.query.searchProduct && req.query.searchCategory) {
-    const regex = new RegExp(escapeRegex(req.query.searchProduct), "gi");
+  } else if (req.query.searchproduct && req.query.searchcategory) {
+    const regex = new RegExp(escapeRegex(req.query.searchproduct), "gi");
     Product.find({ name: regex })
       .populate("categories")
       .exec((err, products) => {
@@ -30,7 +30,7 @@ exports.getAll = function(req, res, next) {
         } else {
           products.forEach(product => {
             let categoryMatch = product.categories.some(
-              ctgry => ctgry.name === req.query.searchCategory
+              ctgry => ctgry.name === req.query.searchcategory
             );
             if (categoryMatch) {
               matchProducts.push(product);
@@ -45,7 +45,7 @@ exports.getAll = function(req, res, next) {
           noMatch: noMatch
         });
       });
-  } else if (req.query.searchCategory) {
+  } else if (req.query.searchcategory) {
     let matchProducts = [];
     Product.find({})
       .populate("categories")
@@ -53,7 +53,7 @@ exports.getAll = function(req, res, next) {
         if (err) return res.status(404).send(err);
         products.forEach(product => {
           let categoryMatch = product.categories.some(
-            ctgry => ctgry.name === req.query.searchCategory
+            ctgry => ctgry.name === req.query.searchcategory
           );
           if (categoryMatch) {
             matchProducts.push(product);
