@@ -65,10 +65,12 @@ io.on("connection", function(socket) {
           });
         }
         if (Object.keys(admins).length === 0) {
+          if (room.messages.length < 1) {
           socket.emit(
             "log message",
             "Thank you for reaching us. Please leave your message here and we will get back to you shortly."
           );
+          }
         } else {
           if (newUser) {
             socket.emit(

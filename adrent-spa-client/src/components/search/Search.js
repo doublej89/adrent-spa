@@ -12,10 +12,10 @@ import TopCategory from "./TopCategory";
 import Typography from "@material-ui/core/Typography";
 import PaginationActions from "../PaginationActions";
 import TablePagination from "@material-ui/core/TablePagination";
-import InputAdornment from '@material-ui/core/InputAdornment';
+import InputAdornment from "@material-ui/core/InputAdornment";
 
 const categories = [
-  'SelectMedia',
+  "SelectMedia",
   "Market",
   "Grocery",
   "University",
@@ -82,7 +82,7 @@ class Search extends Component {
     } else {
       this.props.getAll();
     }
-    //this.renderMap();
+    this.renderMap();
   }
 
   componentDidUpdate(prevProps) {
@@ -282,9 +282,11 @@ class Search extends Component {
             <Grid style={{ height: "100%" }} item xs={11}>
               <Paper style={{ height: "100%", padding: 20 }}>
                 <Grid container style={{ height: "100%" }}>
-                {noMatch ? (<Typography gutterBottom variant="h4" component="h2">
-              {noMatch}
-            </Typography>) : null}
+                  {noMatch ? (
+                    <Typography gutterBottom variant="h4" component="h2">
+                      {noMatch}
+                    </Typography>
+                  ) : null}
                   <Grid
                     style={{
                       maxHeight: 540,
@@ -370,7 +372,7 @@ function loadScript(url) {
 const mapStateToProps = state => {
   return {
     products: state.productStore.products,
-    noMatch: state.productStore.noMatch,
+    noMatch: state.productStore.noMatch
   };
 };
 

@@ -5,3 +5,4 @@ export const GET_ALL_BY_CATEGORY = "get all by category";
 export const AUTH_USER = "auth user";
 export const AUTH_ERROR = "auth error";
 export const CLEAR_ERROR = "clear error";
+export const LOGOUT = "logout";

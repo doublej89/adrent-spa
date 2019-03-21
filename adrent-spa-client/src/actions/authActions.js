@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AUTH_USER, AUTH_ERROR, CLEAR_ERROR } from "./types";
+import { AUTH_USER, AUTH_ERROR, CLEAR_ERROR, LOGOUT } from "./types";
 
 export const registerUser = (userData, history) => dispatch => {
   axios
@@ -50,7 +50,6 @@ export const signout = () => {
   localStorage.removeItem("isAdmin");
   localStorage.removeItem("username");
   return {
-    type: AUTH_USER,
-    payload: ""
+    type: LOGOUT
   };
 };

@@ -156,6 +156,12 @@ class AdminChat extends Component {
     });
   }
 
+  componentDidUpdate() {
+    if (!this.props.authenticated) {
+      this.props.history.push("/");
+    }
+  }
+
   notifyAdmin(title, body) {
     if (Notification.permission === "granted") {
       Notification.requestPermission();

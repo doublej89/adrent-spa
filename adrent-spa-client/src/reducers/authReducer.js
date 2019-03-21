@@ -1,4 +1,4 @@
-import { AUTH_USER, AUTH_ERROR, CLEAR_ERROR } from "../actions/types";
+import { AUTH_USER, AUTH_ERROR, CLEAR_ERROR, LOGOUT } from "../actions/types";
 
 const INITIAL_STATE = {
   authenticated: "",
@@ -22,6 +22,14 @@ export default function(state = INITIAL_STATE, action) {
       return { ...state, errorMessage: action.payload };
     case CLEAR_ERROR:
       return { ...state, errorMessage: null };
+    case LOGOUT:
+      return {
+        ...state,
+        authenticated: "",
+        isAdmin: false,
+        id: "",
+        username: ""
+      };
     default:
       return state;
   }
