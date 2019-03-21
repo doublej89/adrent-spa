@@ -115,7 +115,7 @@ class AdminChat extends Component {
       });
     });
 
-    socket.on("typing", function(data) {
+    socket.on("typing", data => {
       if (data.isTyping)
         this.setState({
           clientTyping: {
@@ -214,7 +214,7 @@ class AdminChat extends Component {
         });
       }
       clearTimeout(this.timeout);
-      this.timeoutFunction();
+      this.timeoutFunction(roomId);
     } else if (e.charCode !== undefined) {
       if (this.typing === false && focused) {
         this.typing = true;

@@ -1,19 +1,30 @@
-import { GET_ALL, GET_ALL_BY_CATEGORY, GET_PRODUCT } from "./types";
-import isEmpty from "../utils/isEmpty";
+import {
+  GET_ALL,
+  GET_ALL_BY_CATEGORY,
+  GET_PRODUCT,
+  GET_PRODUCT_BY_LOCATION
+} from "./types";
 import axios from "axios";
 
 export const getAll = (searchProduct, searchCategory) => dispatch => {
   let url = "/api/product";
-  if (searchProduct && searchCategory && searchCategory !== 'Select Media') {
+  if (searchProduct && searchCategory && searchCategory !== "Select Media") {
     url = `/api/product?searchproduct=${searchProduct}&searchcategory=${searchCategory}`;
-  } else if (searchProduct && (!searchCategory || searchCategory === 'Select Media')) {
+  } else if (
+    searchProduct &&
+    (!searchCategory || searchCategory === "Select Media")
+  ) {
     url = `/api/product?searchproduct=${searchProduct}`;
-  } else if (!searchProduct && searchCategory && searchCategory !== 'Select Media') {
+  } else if (
+    !searchProduct &&
+    searchCategory &&
+    searchCategory !== "Select Media"
+  ) {
     url = `/api/product?searchcategory=${searchCategory}`;
   }
-  console.log(`${searchProduct}, ${searchCategory}`)
+  console.log(`${searchProduct}, ${searchCategory}`);
   console.log(url);
-  
+
   axios
     .get(url)
     .then(response => {
@@ -45,7 +56,7 @@ export const getProductByLocation = coords => dispatch => {
     .then(response => {
       console.log(response);
       dispatch({
-        type: GET_PRODUCT,
+        type: GET_PRODUCT_BY_LOCATION,
         payload: response.data
       });
     })

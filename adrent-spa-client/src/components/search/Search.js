@@ -7,12 +7,15 @@ import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
 import SearchItem from "./SearchItem";
 import { connect } from "react-redux";
-import { getAll, getProductsByCat } from "../../actions/productActions";
+import {
+  getAll,
+  getProductsByCat,
+  getProductByLocation
+} from "../../actions/productActions";
 import TopCategory from "./TopCategory";
 import Typography from "@material-ui/core/Typography";
 import PaginationActions from "../PaginationActions";
 import TablePagination from "@material-ui/core/TablePagination";
-import InputAdornment from "@material-ui/core/InputAdornment";
 
 const categories = [
   "SelectMedia",
@@ -114,7 +117,7 @@ class Search extends Component {
 
   searchByLocation(coords) {
     this.props.getProductByLocation(coords);
-    this.renderMap();
+    //this.renderMap();
   }
 
   handleChange(e) {
@@ -124,12 +127,6 @@ class Search extends Component {
   handleSubmit(e) {
     e.preventDefault();
     this.props.getAll(this.state.productName, this.state.category);
-    // const searchData = {
-    //   category: this.state.category,
-    //   productName: this.state.productName,
-    //   distance: this.state.distance
-    // };
-    //this.props.getSearchedItems(searchData);
     this.setState({
       category: "",
       productName: "",
@@ -378,5 +375,5 @@ const mapStateToProps = state => {
 
 export default connect(
   mapStateToProps,
-  { getAll, getProductsByCat }
+  { getAll, getProductsByCat, getProductByLocation }
 )(withStyles(styles)(Search));

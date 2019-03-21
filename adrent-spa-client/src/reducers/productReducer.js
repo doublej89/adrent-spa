@@ -1,11 +1,14 @@
-import { GET_ALL, GET_ALL_BY_CATEGORY, GET_PRODUCT } from "../actions/types";
+import {
+  GET_ALL,
+  GET_ALL_BY_CATEGORY,
+  GET_PRODUCT,
+  GET_PRODUCT_BY_LOCATION
+} from "../actions/types";
 const initialState = {
   products: [],
   product: {},
   loading: false,
   categoryName: "",
-  // current: null,
-  // pages: null,
   noMatch: null
 };
 
@@ -16,8 +19,6 @@ export default function(state = initialState, action) {
         ...state,
         loading: false,
         products: action.payload.products,
-        // current: action.payload.current,
-        // pages: action.payload.pages,
         noMatch: action.payload.noMatch,
         search: action.payload.search
       };
@@ -30,6 +31,8 @@ export default function(state = initialState, action) {
         products: action.payload.products,
         categoryName: action.payload.name
       };
+    case GET_PRODUCT_BY_LOCATION:
+      return { ...state, products: [action.payload] };
     default:
       return state;
   }

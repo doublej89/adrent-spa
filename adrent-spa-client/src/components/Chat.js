@@ -20,7 +20,8 @@ class Chat extends Component {
       messageText: "",
       disabled: false,
       reconnectFailed: false,
-      isTyping: false
+      isTyping: false,
+      adminName: ""
     };
     this.handleChange = this.handleChange.bind(this);
     this.messageSubmit = this.messageSubmit.bind(this);
@@ -67,7 +68,7 @@ class Chat extends Component {
         msg: text,
         timestamp: "" + new Date()
       };
-      this.setState({ messages: [...this.state.messages, logMessage] });
+      this.setState({ messages: [logMessage, ...this.state.messages] });
     });
 
     socket.on("chat message", data => {
@@ -75,9 +76,9 @@ class Chat extends Component {
       this.setState({ messages: [...this.state.messages, data] });
     });
 
-    socket.on("typing", function(data) {
+    socket.on("typing", data => {
       if (data.isTyping && data.person != "Client")
-        this.setState({ isTyping: true });
+        this.setState({ isTyping: true, adminName: data.person });
       else this.setState({ isTyping: false });
     });
 
@@ -195,7 +196,8 @@ class Chat extends Component {
       reconnectFailed,
       messageText,
       messages,
-      isTyping
+      isTyping,
+      adminName
     } = this.state;
     let inputBoxPlaceholder = "";
     if (disabled) {
@@ -251,7 +253,9 @@ class Chat extends Component {
                   <div className="msg_push_new" />
                 </div>
                 {isTyping ? (
-                  <div className="typing">Adrent is typing...</div>
+                  <div className="typing">
+                    {adminName ? adminName : "Adrent"} is typing...
+                  </div>
                 ) : null}
                 <input
                   disabled={disabled}
