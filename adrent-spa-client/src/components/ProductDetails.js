@@ -68,11 +68,8 @@ class ProductDetails extends Component {
 
   componentDidMount() {
     let id = this.props.match.params.id;
-    console.log(this.props);
-
-    console.log(id);
-
     this.props.getProduct(id);
+    this.renderMap();
   }
 
   componentDidUpdate() {
@@ -118,7 +115,6 @@ class ProductDetails extends Component {
   render() {
     const { classes } = this.props;
     const { product } = this.props;
-    console.log(product);
 
     return (
       <div>
