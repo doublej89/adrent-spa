@@ -315,7 +315,7 @@ class ProductDetails extends Component {
                   </Grid>
                 ) : null}
               </Grid>
-              <Typography variant="h4" style={{ fontWeight: 300 }}>
+              <Typography variant="h4" style={{ fontWeight: 300, marginBottom: 28 }}>
                 Categories
               </Typography>
               {product.categories ? (
@@ -323,7 +323,7 @@ class ProductDetails extends Component {
                   {product.categories.map(cat => (
                     <Link
                       key={cat._id}
-                      style={{ marginRight: 16 }}
+                      style={{ marginRight: 16, textDecoration: 'none' }}
                       to={`/search/${cat._id}`}
                     >
                       <Typography variant="h5">{cat.name}</Typography>

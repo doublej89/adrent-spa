@@ -7,6 +7,7 @@ import Button from "@material-ui/core/Button";
 import { Link } from "react-router-dom";
 import { connect } from "react-redux";
 import { signout } from "../actions/authActions";
+import logo from "../images/adrent-logo.png";
 
 const styles = {
   root: {
@@ -35,7 +36,11 @@ class Header extends Component {
               className={classes.grow}
             >
               <Link style={{ color: "inherit", textDecoration: "none" }} to="/">
-                Adrent
+                <img
+                  alt="logo"
+                  src={logo}
+                  style={{ paddingTop: 10, maxWidth: "13%" }}
+                />
               </Link>
             </Typography>
             {auth && isAdmin && username ? (

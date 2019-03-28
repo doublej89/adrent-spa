@@ -54,6 +54,11 @@ const styles = {
   card: {
     width: "100%",
     heigth: "100%"
+  },
+  filterSection: {
+    width: "90%",
+    padding: 20,
+    alignSelf: "center"
   }
 };
 
@@ -198,6 +203,29 @@ class Search extends Component {
             flexDirection: "column"
           }}
         >
+          <div className={classes.filterSection}>
+            <h2
+              style={{
+                fontSize: "3em",
+                fontWeight: "normal",
+                textAlign: "center",
+                marginBottom: 0
+              }}
+            >
+              Business Marketing Made Easy
+            </h2>
+            <p
+              style={{
+                fontSize: "2.5em",
+                textAlign: "center",
+                marginTop: 0,
+                marginBottom: 0,
+                fontWeight: "lighter"
+              }}
+            >
+              Explore cities and find places with verified suppliers packages
+            </p>
+          </div>
           <form onSubmit={this.handleSubmit}>
             <TextField
               id="outlined-select-media-native"

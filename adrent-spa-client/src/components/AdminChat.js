@@ -3,8 +3,23 @@ import { connect } from "react-redux";
 import "./AdminChat.css";
 import _ from "lodash";
 import io from "socket.io-client";
+import { withStyles } from "@material-ui/core/styles";
+import Typography from "@material-ui/core/Typography";
+import isEmpty from "../utils/isEmpty";
+
 const socketUrl = "http://localhost:5000";
 const socket = io(socketUrl);
+
+const styles = theme => ({
+  heroUnit: {
+    backgroundColor: theme.palette.background.paper
+  },
+  heroContent: {
+    maxWidth: 600,
+    margin: "0 auto",
+    padding: `${theme.spacing.unit * 8}px 0 ${theme.spacing.unit * 6}px`
+  }
+});
 
 class AdminChat extends Component {
   constructor(props) {
@@ -241,6 +256,8 @@ class AdminChat extends Component {
       clientTyping
     } = this.state;
 
+    const { classes } = this.props;
+
     const clientInterfaces = Object.values(clients).map(client => {
       let chatAreaStyle;
       if (!client.justJoined) {
@@ -299,22 +316,50 @@ class AdminChat extends Component {
     });
 
     return (
-      <ul className="pages">
-        <li className="chat page">
-          <div className="container">{clientInterfaces}</div>
-        </li>
-        {disconnectedUser || reconnectFailed ? (
-          <li className="error page">
-            <div className="form">
-              <h3 className="adminTitle">
-                {reconnectFailed
-                  ? "Reconection Failed. Please refresh your page."
-                  : "Reconnecting..."}
-              </h3>
+      <div>
+        <div className={classes.heroUnit}>
+          <div className={classes.heroContent}>
+            <Typography
+              component="h2"
+              variant="h3"
+              align="center"
+              color="textPrimary"
+              gutterBottom
+            >
+              Clients Online
+            </Typography>
+          </div>
+        </div>
+        <ul className="pages">
+          <li className="chat page">
+            <div className="container">
+              {!isEmpty(clients) ? (
+                clientInterfaces
+              ) : (
+                <Typography
+                  variant="h6"
+                  align="center"
+                  color="textPrimary"
+                  paragraph
+                >
+                  No clients are online
+                </Typography>
+              )}
             </div>
           </li>
-        ) : null}
-      </ul>
+          {disconnectedUser || reconnectFailed ? (
+            <li className="error page">
+              <div className="form">
+                <h3 className="adminTitle">
+                  {reconnectFailed
+                    ? "Reconection Failed. Please refresh your page."
+                    : "Reconnecting..."}
+                </h3>
+              </div>
+            </li>
+          ) : null}
+        </ul>
+      </div>
     );
   }
 }
@@ -324,4 +369,4 @@ const mapStateToProps = state => ({
   username: state.auth.username
 });
 
-export default connect(mapStateToProps)(AdminChat);
+export default connect(mapStateToProps)(withStyles(styles)(AdminChat));
