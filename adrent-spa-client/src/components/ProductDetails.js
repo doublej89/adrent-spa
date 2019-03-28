@@ -51,6 +51,12 @@ const styles = {
     display: "flex",
     flexWrap: "wrap",
     justifyContent: "space-around"
+  },
+  category: {
+    color: "#e1422c",
+    "&:hover": {
+      borderBottom: "1px solid #e1422c"
+    }
   }
 };
 
@@ -315,7 +321,10 @@ class ProductDetails extends Component {
                   </Grid>
                 ) : null}
               </Grid>
-              <Typography variant="h4" style={{ fontWeight: 300, marginBottom: 28 }}>
+              <Typography
+                variant="h4"
+                style={{ fontWeight: 300, marginBottom: 28 }}
+              >
                 Categories
               </Typography>
               {product.categories ? (
@@ -323,10 +332,12 @@ class ProductDetails extends Component {
                   {product.categories.map(cat => (
                     <Link
                       key={cat._id}
-                      style={{ marginRight: 16, textDecoration: 'none' }}
+                      style={{ marginRight: 24, textDecoration: "none" }}
                       to={`/search/${cat._id}`}
                     >
-                      <Typography variant="h5">{cat.name}</Typography>
+                      <Typography className={classes.category} variant="h5">
+                        {cat.name}
+                      </Typography>
                     </Link>
                   ))}
                 </Grid>

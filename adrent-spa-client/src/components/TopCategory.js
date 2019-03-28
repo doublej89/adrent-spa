@@ -1,7 +1,7 @@
 import React from "react";
 import GridList from "@material-ui/core/GridList";
 import GridListTile from "@material-ui/core/GridListTile";
-import categoryImage from "../../images/category-bg-2.jpg";
+import categoryImage from "../images/category-bg-2.jpg";
 import { Link } from "react-router-dom";
 import { withStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
@@ -10,8 +10,7 @@ import Typography from "@material-ui/core/Typography";
 const styles = theme => ({
   gridList: {
     width: "100%",
-    height: 520,
-    
+    height: 520
   },
   gridListRoot: {
     display: "flex",

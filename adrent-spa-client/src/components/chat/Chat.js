@@ -1,12 +1,11 @@
 import React, { Component } from "react";
-import { connect } from "react-redux";
 
 import { SlideToggle } from "react-slide-toggle";
 import * as ReactDOM from "react-dom";
 import "./Chat.css";
-import io from "socket.io-client";
-const socketUrl = "http://localhost:5000";
-const socket = io(socketUrl);
+//import io from "socket.io-client";
+// const socketUrl = "http://localhost:5000";
+// const socket = io(socketUrl);
 
 let active = sessionStorage.getItem("active");
 
@@ -31,6 +30,8 @@ class Chat extends Component {
   }
 
   componentDidMount() {
+    const { socket } = this.props;
+
     socket.on("connect", () => {
       console.log("Connected");
       this.setState({
@@ -127,7 +128,7 @@ class Chat extends Component {
 
   _onScroll = () => {
     if (this.messagesRef.current.scrollTop === 0) {
-      socket.emit("more messages", {});
+      this.props.socket.emit("more messages", {});
     }
   };
 
@@ -148,7 +149,7 @@ class Chat extends Component {
       if (cleanedMessage) {
         this.setState({ messageText: "" });
         let time = "" + new Date();
-        socket.emit("chat message", {
+        this.props.socket.emit("chat message", {
           roomId: "null",
           msg: cleanedMessage,
           timestamp: time
@@ -163,7 +164,7 @@ class Chat extends Component {
           ReactDOM.findDOMNode(this.inputMessageRef.current)
       ) {
         this.typing = true;
-        socket.emit("typing", {
+        this.props.socket.emit("typing", {
           isTyping: true,
           roomId: roomId,
           person: "Client"
@@ -182,7 +183,7 @@ class Chat extends Component {
   timeoutFunction() {
     const { roomId } = this.props;
     this.typing = false;
-    socket.emit("typing", {
+    this.props.socket.emit("typing", {
       isTyping: false,
       roomId: roomId,
       person: "Client"
@@ -190,7 +191,7 @@ class Chat extends Component {
   }
 
   render() {
-    const { roomId } = this.props;
+    const { roomId, socket } = this.props;
     const {
       disabled,
       reconnectFailed,

@@ -22,8 +22,15 @@ const styles = {
 };
 
 class Header extends Component {
+  handleClick = () => {
+    const { signout, socket } = this.props;
+
+    socket.emit("disconnect");
+    signout();
+  };
+
   render() {
-    const { classes, auth, signout, isAdmin, username } = this.props;
+    const { classes, auth, isAdmin, username } = this.props;
 
     return (
       <div className={classes.root}>
@@ -55,7 +62,7 @@ class Header extends Component {
             ) : null}
             {auth ? (
               <Button
-                onClick={() => signout()}
+                onClick={this.handleClick}
                 color="inherit"
                 className={classes.loginButton}
               >

@@ -2,13 +2,14 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import "./AdminChat.css";
 import _ from "lodash";
-import io from "socket.io-client";
+//import io from "socket.io-client";
 import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
-import isEmpty from "../utils/isEmpty";
+import MessageList from "./MessageList";
+import isEmpty from "../../utils/isEmpty";
 
-const socketUrl = "http://localhost:5000";
-const socket = io(socketUrl);
+// const socketUrl = "http://localhost:5000";
+// const socket = io(socketUrl);
 
 const styles = theme => ({
   heroUnit: {
@@ -41,7 +42,7 @@ class AdminChat extends Component {
   }
 
   componentDidMount() {
-    const { username, authenticated } = this.props;
+    const { username, authenticated, socket } = this.props;
 
     socket.on("connect", () => {
       console.log("Connected");
@@ -201,7 +202,7 @@ class AdminChat extends Component {
 
   timeoutFunction = id => {
     this.typing = false;
-    socket.emit("typing", {
+    this.props.socket.emit("typing", {
       isTyping: false,
       roomId: id,
       person: this.props.username
@@ -222,7 +223,7 @@ class AdminChat extends Component {
         });
         let time = "" + new Date();
 
-        socket.emit("chat message", {
+        this.props.socket.emit("chat message", {
           roomId: roomId,
           msg: cleanedMessage,
           timestamp: time
@@ -233,7 +234,7 @@ class AdminChat extends Component {
     } else if (e.charCode !== undefined) {
       if (this.typing === false && focused) {
         this.typing = true;
-        socket.emit("typing", {
+        this.props.socket.emit("typing", {
           isTyping: true,
           roomId: roomId,
           person: this.props.username
@@ -270,17 +271,7 @@ class AdminChat extends Component {
           <div className="adminChatHeader">
             {client.details.username}, {client.details.email}
           </div>
-          <ul className="adminMessages">
-            {client.history.map(message => (
-              <li className="message">
-                <span className="username">
-                  {message.isAdmin ? "You" : "Client"}
-                </span>
-                <span className="messageBody">{message.msg}</span>
-                <span className="adminTimestamp">{message.timestamp}</span>
-              </li>
-            ))}
-          </ul>
+          <MessageList client={client} />
           {clientTyping[client.roomId].isTyping &&
           clientTyping[client.roomId].person ? (
             <div className="typing">
