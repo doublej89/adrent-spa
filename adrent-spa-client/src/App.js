@@ -12,7 +12,13 @@ import Home from "./components/Home";
 import { connect } from "react-redux";
 import io from "socket.io-client";
 
-const socketUrl = "http://localhost:5000";
+let socketUrl = "";
+if (process.env.NODE_ENV === "production") {
+  socketUrl = "https://hidden-mountain-33066.herokuapp.com";
+} else {
+  socketUrl = "http://localhost:5000";
+}
+
 const socket = io(socketUrl);
 
 function App(props) {
