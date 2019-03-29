@@ -142,7 +142,7 @@ class Home extends Component {
     var uluru = { lat: 23.8157559, lng: 90.3891032 };
 
     var map = new window.google.maps.Map(document.getElementById("map"), {
-      zoom: 8,
+      zoom: 7,
       center: uluru
     });
 
@@ -162,7 +162,9 @@ class Home extends Component {
 
   renderMap = () => {
     loadScript(
-      "https://maps.googleapis.com/maps/api/js?key=AIzaSyAYTVzREXPWPP8TMxzklQsel1l2TcJkINs&callback=initMap"
+      `https://maps.googleapis.com/maps/api/js?key=${
+        process.env.REACT_APP_GOOGLE_API_KEY
+      }&callback=initMap`
     );
     window.initMap = this.initMap;
   };

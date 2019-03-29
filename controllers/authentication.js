@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
-const config = require("../config");
+const config = require("../config/config");
 const validateRegisterInput = require("../validation/signup");
 const validateLoginInput = require("../validation/signin");
 

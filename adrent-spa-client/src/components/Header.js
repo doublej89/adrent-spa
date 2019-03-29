@@ -21,73 +21,64 @@ const styles = {
   }
 };
 
-class Header extends Component {
-  handleClick = () => {
-    const { signout, socket } = this.props;
+function Header(props) {
+  const { classes, auth, isAdmin, username, signout } = props;
 
-    socket.emit("disconnect");
-    signout();
-  };
-
-  render() {
-    const { classes, auth, isAdmin, username } = this.props;
-
-    return (
-      <div className={classes.root}>
-        <AppBar position="static">
-          <Toolbar>
-            <Typography
-              align="left"
-              variant="h6"
+  return (
+    <div className={classes.root}>
+      <AppBar position="static">
+        <Toolbar>
+          <Typography
+            align="left"
+            variant="h6"
+            color="inherit"
+            className={classes.grow}
+          >
+            <Link style={{ color: "inherit", textDecoration: "none" }} to="/">
+              <img
+                alt="logo"
+                src={logo}
+                style={{ paddingTop: 10, maxWidth: "13%" }}
+              />
+            </Link>
+          </Typography>
+          {auth && isAdmin && username ? (
+            <Button
+              component={Link}
+              to="/adminchat"
               color="inherit"
-              className={classes.grow}
+              className={classes.loginButton}
             >
-              <Link style={{ color: "inherit", textDecoration: "none" }} to="/">
-                <img
-                  alt="logo"
-                  src={logo}
-                  style={{ paddingTop: 10, maxWidth: "13%" }}
-                />
-              </Link>
-            </Typography>
-            {auth && isAdmin && username ? (
+              Messages
+            </Button>
+          ) : null}
+          {auth ? (
+            <Button
+              onClick={() => signout()}
+              color="inherit"
+              className={classes.loginButton}
+            >
+              Logout
+            </Button>
+          ) : (
+            <div>
               <Button
                 component={Link}
-                to="/adminchat"
+                to="/signin"
                 color="inherit"
                 className={classes.loginButton}
               >
-                Messages
+                Login
               </Button>
-            ) : null}
-            {auth ? (
-              <Button
-                onClick={this.handleClick}
-                color="inherit"
-                className={classes.loginButton}
-              >
-                Logout
+              <Button component={Link} to="/signup" color="inherit">
+                Signup
               </Button>
-            ) : (
-              <div>
-                <Button
-                  component={Link}
-                  to="/signin"
-                  color="inherit"
-                  className={classes.loginButton}
-                >
-                  Login
-                </Button>
-                <Button component={Link} to="/signup" color="inherit">
-                  Signup
-                </Button>
-              </div>
-            )}
-          </Toolbar>
-        </AppBar>
-      </div>
-    );
-  }
+            </div>
+          )}
+        </Toolbar>
+      </AppBar>
+    </div>
+  );
 }
 
 const mapStateToProps = state => {

@@ -157,13 +157,12 @@ class AdminChat extends Component {
 
     socket.on("User Disconnected", roomId => {
       console.log("disconnected user: " + roomId);
-
-      this.setState({ disconnectedUser: roomId });
       this.setState({
         clients: _.omit(this.state.clients, roomId),
         messageTexts: _.omit(this.state.messageTexts, roomId),
         clientFocusState: _.omit(this.state.clientFocusState, roomId),
-        clientTyping: _.omit(this.state.clientTyping, roomId)
+        clientTyping: _.omit(this.state.clientTyping, roomId),
+        disconnectedUser: roomId
       });
     });
 

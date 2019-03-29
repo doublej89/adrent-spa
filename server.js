@@ -8,6 +8,8 @@ const cors = require("cors");
 //const SocketManager = require("./SocketManager");
 const User = require("./models/User");
 const Room = require("./models/Room");
+const config = require("./config/config");
+const path = require("path");
 
 const app = express();
 const http = require("http").Server(app);
@@ -19,9 +21,18 @@ authRoute(app);
 productRoute(app);
 
 mongoose
-  .connect("mongodb://adrentuser:anger1ssue@ds259410.mlab.com:59410/adrentdb")
+  .connect(config.mongoURI)
   .then(() => console.log("MongoDB connected"))
   .catch(err => console.log(err));
+
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static("adrent-spa-client/build"));
+  app.get("*", (req, res) => {
+    res.sendFile(
+      path.resolve(__dirname, "adrent-spa-client", "build", "index.html")
+    );
+  });
+}
 
 const users = {};
 const admins = {};
@@ -43,9 +54,7 @@ io.on("connection", function(socket) {
     }
     Room.findOne({ roomId: socket.roomId })
       .then(room => {
-        console.log(room);
         if (!room) {
-          console.log("Socket id: " + socket.roomId);
           Room.create({ roomId: socket.roomId })
             .then(r => {
               socket.emit("chat history", {
@@ -111,8 +120,6 @@ io.on("connection", function(socket) {
       Object.values(users).forEach(function(userSocket) {
         Room.findOne({ roomId: userSocket.roomId })
           .then(room => {
-            console.log(room);
-
             let userSocket = users[room.roomId];
             let history = room.messages;
             //history.splice(-1, 1);
@@ -180,6 +187,8 @@ io.on("connection", function(socket) {
   });
 
   socket.on("disconnect", function() {
+    console.log("logout attempt!");
+
     if (socket.isAdmin) {
       delete admins[socket.username];
       Object.values(admins).forEach(function(adminSocket) {
@@ -208,7 +217,15 @@ io.on("connection", function(socket) {
           }, 4000);
         }
       } else {
-        if (socket.userDetails) delete users[socket.roomId];
+        if (socket.userDetails) {
+          delete users[socket.roomId];
+          socket.broadcast
+            .to(socket.roomId)
+            .emit("User Disconnected", socket.roomId);
+          Object.values(admins).forEach(function(adminSocket) {
+            adminSocket.leave(socket.roomId);
+          });
+        }
       }
     }
   });

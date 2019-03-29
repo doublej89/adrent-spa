@@ -107,7 +107,9 @@ class ProductDetails extends Component {
 
   renderMap = () => {
     loadScript(
-      "https://maps.googleapis.com/maps/api/js?key=AIzaSyAYTVzREXPWPP8TMxzklQsel1l2TcJkINs&callback=initMap"
+      `https://maps.googleapis.com/maps/api/js?key=${
+        process.env.REACT_APP_GOOGLE_API_KEY
+      }&callback=initMap`
     );
     window.initMap = this.initMap;
   };

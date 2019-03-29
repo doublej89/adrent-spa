@@ -4,7 +4,8 @@
   "description": "a common playground for all user agency and supplier",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install --prefix adrent-spa-client && npm run build --prefix adrent-spa-client"
   },
   "keywords": [
     "adrent",
@@ -25,9 +26,7 @@
     "mongoose": "^5.4.3",
     "passport": "^0.4.0",
     "passport-jwt": "^4.0.0",
-    "passport-local": "^1.0.0",
     "socket.io": "^2.2.0",
     "validator": "^10.10.0"
-  },
-  "proxy": "http://localhost:5000"
+  }
 }
